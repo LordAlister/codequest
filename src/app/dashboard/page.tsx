@@ -11,6 +11,7 @@ import { Trophy, Flame, Star, Code2, LogOut, BookOpen, Zap, Lock } from "lucide-
 import BadgesGrid from "@/components/BadgesGrid"
 import { getEarnedBadges, ALL_BADGES } from "@/lib/badges"
 import Link from "next/link"
+import Logo from "@/components/Logo"
 
 const languages = [
   {
@@ -106,12 +107,7 @@ export default function Dashboard() {
 
       {/* NAV */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto border-b border-slate-700/50">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🗺️</span>
-          <span className="text-xl font-bold bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
-            CodeQuest
-          </span>
-        </div>
+        <Logo size="md" href="/" />
         <div className="flex items-center gap-4">
           <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
             <Flame className="w-3 h-3 mr-1" /> {streak} jours 🔥

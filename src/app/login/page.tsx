@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Logo from "@/components/Logo"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -34,7 +35,9 @@ export default function LoginPage() {
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 flex items-center justify-center px-4">
       <Card className="w-full max-w-md bg-slate-800/60 border-slate-700">
         <CardHeader className="text-center">
-          <div className="text-4xl mb-2">🗺️</div>
+            <div className="flex justify-center mb-2">
+                <Logo size="lg" href="/" />
+            </div>
           <CardTitle className="text-2xl font-extrabold text-white">
             Bon retour sur CodeQuest !
           </CardTitle>

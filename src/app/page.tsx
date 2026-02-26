@@ -13,6 +13,8 @@ import {
   Award,
 } from "lucide-react"
 
+import Logo from "@/components/Logo"
+
 const stats = [
   { label: "Apprenants actifs", value: "12 400+", icon: Users },
   { label: "Leçons disponibles", value: "200+", icon: BookOpen },
@@ -66,12 +68,7 @@ export default function Home() {
 
       {/* NAV */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🗺️</span>
-          <span className="text-xl font-bold bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
-            CodeQuest
-          </span>
-        </div>
+        <Logo size="md" href="/" />
         <div className="flex items-center gap-3">
           <Link href="/login">
             <Button variant="ghost" className="text-white hover:text-violet-300">
@@ -108,9 +105,9 @@ export default function Home() {
             </Button>
           </Link>
           <Link href="/demo">
-            <Button size="lg" variant="outline" className="border-slate-600 text-white hover:bg-slate-800 px-8 py-6 text-lg">
-              Voir une démo
-            </Button>
+              <Button size="lg" variant="outline" className="border-slate-600 text-white hover:bg-slate-800 hover:text-white bg-transparent px-8 py-6 text-lg">
+                Voir une démo
+              </Button>
           </Link>
         </div>
 

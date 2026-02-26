@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
+import Logo from "@/components/Logo"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
@@ -57,7 +58,9 @@ export default function SignupPage() {
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 flex items-center justify-center px-4">
       <Card className="w-full max-w-md bg-slate-800/60 border-slate-700">
         <CardHeader className="text-center">
-          <div className="text-4xl mb-2">⚔️</div>
+            <div className="flex justify-center mb-2">
+                <Logo size="lg" href="/" />
+            </div>
           <CardTitle className="text-2xl font-extrabold text-white">
             Crée ton aventurier !
           </CardTitle>
