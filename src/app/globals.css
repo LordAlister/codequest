@@ -41,3 +41,23 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
 }
+
+* {
+  cursor: default;
+}
+
+a,
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+label[for],
+select {
+  cursor: pointer !important;
+}
+
+input,
+textarea {
+  cursor: text !important;
+}

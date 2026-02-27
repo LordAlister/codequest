@@ -6,11 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import Logo from "@/components/Logo"
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -21,13 +19,21 @@ export default function LoginPage() {
     setLoading(true)
     setError("")
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password.trim(),
+    })
 
     if (error) {
-      setError("Email ou mot de passe incorrect.")
-    } else {
-      router.push("/dashboard")
+      setError(`Erreur: ${error.message}`)
+      setLoading(false)
+      return
     }
+
+    if (data.session) {
+      window.location.href = "/dashboard"
+    }
+
     setLoading(false)
   }
 
@@ -35,11 +41,11 @@ export default function LoginPage() {
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 flex items-center justify-center px-4">
       <Card className="w-full max-w-md bg-slate-800/60 border-slate-700">
         <CardHeader className="text-center">
-            <div className="flex justify-center mb-2">
-                <Logo size="lg" href="/" />
-            </div>
-          <CardTitle className="text-2xl font-extrabold text-white">
-            Bon retour sur CodeQuest !
+          <div className="flex justify-center mb-2">
+            <Logo size="lg" href="/" />
+          </div>
+          <CardTitle className="text-2xl font-extrabold text-white mt-2">
+            Bon retour !
           </CardTitle>
           <p className="text-slate-400 text-sm mt-1">Connecte-toi pour continuer ton aventure</p>
         </CardHeader>
@@ -69,15 +75,17 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <p className="text-red-400 text-sm text-center">{error}</p>
+              <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
+                <p className="text-red-400 text-sm text-center">{error}</p>
+              </div>
             )}
 
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-violet-600 hover:bg-violet-500 text-white py-5"
+              className="w-full bg-violet-600 hover:bg-violet-500 text-white py-5 text-base"
             >
-              {loading ? "Connexion..." : "Se connecter 🚀"}
+              {loading ? "Connexion en cours..." : "Se connecter 🚀"}
             </Button>
           </form>
 
