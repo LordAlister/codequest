@@ -18,16 +18,9 @@ const lessons = [
 <html>
   <head>
     <style>
-      /* Écris ton CSS ici */
-      body {
-        
-      }
-      h1 {
-        
-      }
-      p {
-        
-      }
+      body { }
+      h1 { }
+      p { }
     </style>
   </head>
   <body>
@@ -46,18 +39,8 @@ const lessons = [
   <head>
     <style>
       body { background: #0f0f0f; color: white; font-family: sans-serif; padding: 2rem; }
-      .cards {
-        /* Ajoute flexbox ici */
-        
-      }
-      .card {
-        background: #1e1b4b;
-        padding: 1.5rem;
-        border-radius: 1rem;
-        width: 150px;
-        text-align: center;
-        border: 1px solid #4c1d95;
-      }
+      .cards { /* Ajoute flexbox ici */ }
+      .card { background: #1e1b4b; padding: 1.5rem; border-radius: 1rem; width: 150px; text-align: center; border: 1px solid #4c1d95; }
     </style>
   </head>
   <body>
@@ -79,19 +62,8 @@ const lessons = [
   <head>
     <style>
       body { background: #0f0f0f; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-      
-      @keyframes pulse {
-        /* Définis l'animation ici */
-        
-      }
-
-      h1 {
-        color: #7c3aed;
-        font-size: 3rem;
-        font-family: sans-serif;
-        /* Applique l'animation ici */
-        
-      }
+      @keyframes pulse { /* Définis ici */ }
+      h1 { color: #7c3aed; font-size: 3rem; font-family: sans-serif; /* Applique ici */ }
     </style>
   </head>
   <body>
@@ -104,12 +76,19 @@ const lessons = [
 export default function CSSLearnPage() {
   const [currentLesson, setCurrentLesson] = useState(0)
   const [completedLessons, setCompletedLessons] = useState<number[]>([])
+  const [justCompleted, setJustCompleted] = useState(false)
   const lesson = lessons[currentLesson]
+
+  const goToLesson = (index: number) => {
+    setCurrentLesson(index)
+    setJustCompleted(false)
+  }
 
   const handleSuccess = () => {
     if (!completedLessons.includes(lesson.id)) {
       setCompletedLessons([...completedLessons, lesson.id])
     }
+    setJustCompleted(true)
   }
 
   return (
@@ -135,7 +114,7 @@ export default function CSSLearnPage() {
             {lessons.map((l, i) => (
               <button
                 key={l.id}
-                onClick={() => setCurrentLesson(i)}
+                onClick={() => goToLesson(i)}
                 className={`w-8 h-8 rounded-full text-sm font-bold transition-all ${
                   completedLessons.includes(l.id)
                     ? "bg-green-500 text-white"
@@ -175,9 +154,39 @@ export default function CSSLearnPage() {
           onSuccess={handleSuccess}
         />
 
+        {justCompleted && (
+          <div className="flex flex-col items-center gap-3 py-4 bg-gradient-to-r from-green-900/40 to-emerald-900/40 border border-green-500/30 rounded-xl px-6 text-center">
+            {currentLesson < lessons.length - 1 ? (
+              <>
+                <p className="text-green-400 font-bold text-lg">
+                  🎉 Leçon complétée ! +{lesson.xp} XP
+                </p>
+                <Button
+                  onClick={() => goToLesson(currentLesson + 1)}
+                  className="bg-green-600 hover:bg-green-500 text-white font-bold px-8"
+                >
+                  Leçon suivante →
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-yellow-400 font-bold text-lg">
+                  🏆 Parcours CSS terminé ! Tu as tout complété !
+                </p>
+                <Button
+                  onClick={() => window.location.href = "/dashboard"}
+                  className="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-8"
+                >
+                  Retour au Dashboard 🏠
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-between pt-2">
           <Button
-            onClick={() => setCurrentLesson(Math.max(0, currentLesson - 1))}
+            onClick={() => goToLesson(Math.max(0, currentLesson - 1))}
             disabled={currentLesson === 0}
             variant="outline"
             className="border-slate-600 text-slate-300 hover:bg-slate-700"
@@ -185,7 +194,7 @@ export default function CSSLearnPage() {
             <ChevronLeft className="w-4 h-4 mr-1" /> Précédent
           </Button>
           <Button
-            onClick={() => setCurrentLesson(Math.min(lessons.length - 1, currentLesson + 1))}
+            onClick={() => goToLesson(Math.min(lessons.length - 1, currentLesson + 1))}
             disabled={currentLesson === lessons.length - 1}
             className="bg-blue-600 hover:bg-blue-500 text-white"
           >

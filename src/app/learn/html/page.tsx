@@ -11,51 +11,43 @@ import Link from "next/link"
 const lessons = [
   {
     id: 1,
-    title: "Ta première page HTML",
+    title: "Ma première page",
     xp: 50,
-    instructions: "Crée une page HTML avec un titre <h1> qui dit 'Bonjour CodeQuest !' et un paragraphe <p> avec ton prénom.",
+    instructions: "Crée une page HTML avec un titre <h1> qui dit 'Bonjour CodeQuest !' et un paragraphe <p> qui dit 'J'apprends le HTML !'.",
     defaultCode: `<!DOCTYPE html>
 <html>
   <head>
     <title>Ma page</title>
   </head>
   <body>
-    <!-- Écris ton code ici -->
-    <h1>Bonjour CodeQuest !</h1>
-    <p>Je m'appelle ...</p>
+    <!-- Écris ton HTML ici -->
+    
   </body>
 </html>`,
   },
   {
     id: 2,
-    title: "Les liens et images",
+    title: "Liens et Images",
     xp: 75,
-    instructions: "Ajoute un lien <a> vers https://google.com avec le texte 'Visiter Google' et une image <img> avec src='https://picsum.photos/200'.",
+    instructions: "Ajoute un lien <a> vers https://codequest.dev avec le texte 'Visiter CodeQuest' et une image <img> avec src='https://picsum.photos/200' et alt='Photo'.",
     defaultCode: `<!DOCTYPE html>
 <html>
   <body>
-    <!-- Ajoute un lien et une image -->
+    <!-- Ajoute un lien et une image ici -->
     
   </body>
 </html>`,
   },
   {
     id: 3,
-    title: "Les listes HTML",
-    xp: 75,
-    instructions: "Crée une liste non-ordonnée <ul> avec 3 de tes langages préférés, et une liste ordonnée <ol> avec les 3 étapes pour apprendre à coder.",
+    title: "Listes et Tableaux",
+    xp: 100,
+    instructions: "Crée une liste non-ordonnée <ul> avec 3 langages de programmation, puis un tableau <table> avec 2 colonnes (Langage, Difficulté) et 2 lignes.",
     defaultCode: `<!DOCTYPE html>
 <html>
   <body>
-    <h2>Mes langages préférés</h2>
-    <ul>
-      <!-- 3 items ici -->
-    </ul>
-
-    <h2>Comment apprendre à coder</h2>
-    <ol>
-      <!-- 3 étapes ici -->
-    </ol>
+    <!-- Crée une liste et un tableau ici -->
+    
   </body>
 </html>`,
   },
@@ -64,18 +56,23 @@ const lessons = [
 export default function HTMLLearnPage() {
   const [currentLesson, setCurrentLesson] = useState(0)
   const [completedLessons, setCompletedLessons] = useState<number[]>([])
+  const [justCompleted, setJustCompleted] = useState(false)
   const lesson = lessons[currentLesson]
+
+  const goToLesson = (index: number) => {
+    setCurrentLesson(index)
+    setJustCompleted(false)
+  }
 
   const handleSuccess = () => {
     if (!completedLessons.includes(lesson.id)) {
       setCompletedLessons([...completedLessons, lesson.id])
     }
+    setJustCompleted(true)
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
-
-      {/* NAV */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50 max-w-7xl mx-auto">
         <Link href="/dashboard">
           <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
@@ -92,19 +89,17 @@ export default function HTMLLearnPage() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
-
-        {/* PROGRESSION */}
         <div className="flex items-center gap-4">
           <div className="flex gap-2">
             {lessons.map((l, i) => (
               <button
                 key={l.id}
-                onClick={() => setCurrentLesson(i)}
+                onClick={() => goToLesson(i)}
                 className={`w-8 h-8 rounded-full text-sm font-bold transition-all ${
                   completedLessons.includes(l.id)
                     ? "bg-green-500 text-white"
                     : i === currentLesson
-                    ? "bg-violet-600 text-white"
+                    ? "bg-orange-600 text-white"
                     : "bg-slate-700 text-slate-400"
                 }`}
               >
@@ -121,7 +116,6 @@ export default function HTMLLearnPage() {
           </span>
         </div>
 
-        {/* TITRE LEÇON */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-extrabold">
             Leçon {lesson.id} — {lesson.title}
@@ -131,7 +125,6 @@ export default function HTMLLearnPage() {
           </Badge>
         </div>
 
-        {/* ÉDITEUR */}
         <CodeEditor
           key={lesson.id}
           defaultCode={lesson.defaultCode}
@@ -141,10 +134,39 @@ export default function HTMLLearnPage() {
           onSuccess={handleSuccess}
         />
 
-        {/* NAVIGATION */}
+        {justCompleted && (
+          <div className="flex flex-col items-center gap-3 py-4 bg-gradient-to-r from-green-900/40 to-emerald-900/40 border border-green-500/30 rounded-xl px-6 text-center">
+            {currentLesson < lessons.length - 1 ? (
+              <>
+                <p className="text-green-400 font-bold text-lg">
+                  🎉 Leçon complétée ! +{lesson.xp} XP
+                </p>
+                <Button
+                  onClick={() => goToLesson(currentLesson + 1)}
+                  className="bg-green-600 hover:bg-green-500 text-white font-bold px-8"
+                >
+                  Leçon suivante →
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-yellow-400 font-bold text-lg">
+                  🏆 Parcours HTML terminé ! Tu as tout complété !
+                </p>
+                <Button
+                  onClick={() => window.location.href = "/dashboard"}
+                  className="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-8"
+                >
+                  Retour au Dashboard 🏠
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-between pt-2">
           <Button
-            onClick={() => setCurrentLesson(Math.max(0, currentLesson - 1))}
+            onClick={() => goToLesson(Math.max(0, currentLesson - 1))}
             disabled={currentLesson === 0}
             variant="outline"
             className="border-slate-600 text-slate-300 hover:bg-slate-700"
@@ -152,14 +174,13 @@ export default function HTMLLearnPage() {
             <ChevronLeft className="w-4 h-4 mr-1" /> Précédent
           </Button>
           <Button
-            onClick={() => setCurrentLesson(Math.min(lessons.length - 1, currentLesson + 1))}
+            onClick={() => goToLesson(Math.min(lessons.length - 1, currentLesson + 1))}
             disabled={currentLesson === lessons.length - 1}
-            className="bg-violet-600 hover:bg-violet-500 text-white"
+            className="bg-orange-600 hover:bg-orange-500 text-white"
           >
             Suivant <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
-
       </div>
     </main>
   )

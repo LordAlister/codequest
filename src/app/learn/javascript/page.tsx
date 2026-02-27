@@ -13,58 +13,30 @@ const lessons = [
     id: 1,
     title: "Variables et console.log",
     xp: 50,
-    instructions: "Crée une variable 'nom' avec ton prénom et une variable 'age' avec ton âge. Affiche-les avec console.log() dans une phrase : 'Je m'appelle X et j'ai Y ans.'",
+    instructions: "Déclare une variable 'name' avec ton prénom et une variable 'age' avec ton âge. Affiche-les avec console.log().",
     defaultCode: `// Déclare tes variables ici
-const nom = ""
+const name = ""
 const age = 0
 
-// Affiche-les avec console.log
+// Affiche-les ici
 `,
   },
   {
     id: 2,
-    title: "Fonctions",
+    title: "Conditions",
     xp: 75,
-    instructions: "Crée une fonction 'saluer(prenom)' qui retourne 'Bonjour [prenom], bienvenue sur CodeQuest !'. Appelle-la avec ton prénom et affiche le résultat.",
-    defaultCode: `// Crée la fonction saluer
-function saluer(prenom) {
-  // Retourne le message ici
-  
-}
+    instructions: "Écris une condition if/else : si age >= 18, affiche 'Majeur', sinon affiche 'Mineur'. Utilise la variable age = 20.",
+    defaultCode: `const age = 20
 
-// Appelle la fonction et affiche le résultat
-console.log(saluer("Massi"))
+// Écris ta condition ici
 `,
   },
   {
     id: 3,
     title: "Boucles",
     xp: 100,
-    instructions: "Crée un tableau 'langages' avec ['HTML', 'CSS', 'JavaScript', 'Python']. Utilise une boucle forEach pour afficher chaque langage avec son emoji correspondant.",
-    defaultCode: `const langages = ['HTML', 'CSS', 'JavaScript', 'Python']
-const emojis = ['🌐', '🎨', '⚡', '🐍']
-
-// Boucle forEach pour afficher chaque langage
-langages.forEach((lang, index) => {
-  // Affiche emoji + langage ici
-  
-})
-`,
-  },
-  {
-    id: 4,
-    title: "Conditions",
-    xp: 100,
-    instructions: "Crée une fonction 'getNiveau(xp)' qui retourne 'Débutant' si xp < 500, 'Intermédiaire' si xp < 2000, et 'Expert' sinon. Teste avec 3 valeurs différentes.",
-    defaultCode: `function getNiveau(xp) {
-  // Écris les conditions if/else ici
-  
-}
-
-// Teste la fonction
-console.log(getNiveau(200))
-console.log(getNiveau(1000))
-console.log(getNiveau(5000))
+    instructions: "Crée une boucle for qui affiche les nombres de 1 à 5 avec console.log().",
+    defaultCode: `// Écris ta boucle ici
 `,
   },
 ]
@@ -72,12 +44,19 @@ console.log(getNiveau(5000))
 export default function JSLearnPage() {
   const [currentLesson, setCurrentLesson] = useState(0)
   const [completedLessons, setCompletedLessons] = useState<number[]>([])
+  const [justCompleted, setJustCompleted] = useState(false)
   const lesson = lessons[currentLesson]
+
+  const goToLesson = (index: number) => {
+    setCurrentLesson(index)
+    setJustCompleted(false)
+  }
 
   const handleSuccess = () => {
     if (!completedLessons.includes(lesson.id)) {
       setCompletedLessons([...completedLessons, lesson.id])
     }
+    setJustCompleted(true)
   }
 
   return (
@@ -103,12 +82,12 @@ export default function JSLearnPage() {
             {lessons.map((l, i) => (
               <button
                 key={l.id}
-                onClick={() => setCurrentLesson(i)}
+                onClick={() => goToLesson(i)}
                 className={`w-8 h-8 rounded-full text-sm font-bold transition-all ${
                   completedLessons.includes(l.id)
                     ? "bg-green-500 text-white"
                     : i === currentLesson
-                    ? "bg-yellow-500 text-black"
+                    ? "bg-yellow-600 text-white"
                     : "bg-slate-700 text-slate-400"
                 }`}
               >
@@ -143,9 +122,39 @@ export default function JSLearnPage() {
           onSuccess={handleSuccess}
         />
 
+        {justCompleted && (
+          <div className="flex flex-col items-center gap-3 py-4 bg-gradient-to-r from-green-900/40 to-emerald-900/40 border border-green-500/30 rounded-xl px-6 text-center">
+            {currentLesson < lessons.length - 1 ? (
+              <>
+                <p className="text-green-400 font-bold text-lg">
+                  🎉 Leçon complétée ! +{lesson.xp} XP
+                </p>
+                <Button
+                  onClick={() => goToLesson(currentLesson + 1)}
+                  className="bg-green-600 hover:bg-green-500 text-white font-bold px-8"
+                >
+                  Leçon suivante →
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-yellow-400 font-bold text-lg">
+                  🏆 Parcours JavaScript terminé ! Tu as tout complété !
+                </p>
+                <Button
+                  onClick={() => window.location.href = "/dashboard"}
+                  className="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-8"
+                >
+                  Retour au Dashboard 🏠
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-between pt-2">
           <Button
-            onClick={() => setCurrentLesson(Math.max(0, currentLesson - 1))}
+            onClick={() => goToLesson(Math.max(0, currentLesson - 1))}
             disabled={currentLesson === 0}
             variant="outline"
             className="border-slate-600 text-slate-300 hover:bg-slate-700"
@@ -153,9 +162,9 @@ export default function JSLearnPage() {
             <ChevronLeft className="w-4 h-4 mr-1" /> Précédent
           </Button>
           <Button
-            onClick={() => setCurrentLesson(Math.min(lessons.length - 1, currentLesson + 1))}
+            onClick={() => goToLesson(Math.min(lessons.length - 1, currentLesson + 1))}
             disabled={currentLesson === lessons.length - 1}
-            className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold"
+            className="bg-yellow-600 hover:bg-yellow-500 text-white"
           >
             Suivant <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
