@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import Logo from "@/components/Logo"
+import { useRedirectIfAuthed } from "@/hooks/useRedirectIfAuthed"
 
 export default function LoginPage() {
+    useRedirectIfAuthed("/dashboard")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)

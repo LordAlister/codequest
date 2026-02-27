@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Trophy, Code2, ArrowRight, Users, BookOpen, Award } from "lucide-react"
 import AnimatedCard from "@/components/AnimatedCard"
 import Logo from "@/components/Logo"
+import { useRedirectIfAuthed } from "@/hooks/useRedirectIfAuthed"
 
 const stats = [
   { label: "Apprenants actifs", value: "12 400+", icon: Users },
@@ -43,6 +44,7 @@ const fadeUp: Variants = {
 
 
 export default function Home() {
+  useRedirectIfAuthed("/dashboard")
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white overflow-hidden">
 
