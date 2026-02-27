@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +11,7 @@ import BadgesGrid from "@/components/BadgesGrid"
 import { getEarnedBadges, ALL_BADGES } from "@/lib/badges"
 import Link from "next/link"
 import Logo from "@/components/Logo"
+import BadgeNotification from "@/components/BadgeNotification"
 
 const languages = [
   { name: "HTML", emoji: "🌐", color: "from-orange-500 to-orange-600", progress: 60, level: 3, lessons: 12, totalLessons: 20, unlocked: true },
@@ -20,6 +22,9 @@ const languages = [
 
 export default function Dashboard() {
   const { loading, username, logout } = useAuth()
+
+  // ✅ State pour la notification de badge
+  const [newBadge, setNewBadge] = useState<{ emoji: string; name: string } | null>(null)
 
   const xp = 1240
   const xpMax = 2000
@@ -32,6 +37,12 @@ export default function Dashboard() {
     jsLessons: 1, pythonLessons: 0,
   })
 
+  // ✅ Fonction pour déclencher une notification de badge
+  const triggerBadge = (id: string) => {
+    const badge = ALL_BADGES.find((b) => b.id === id)
+    if (badge) setNewBadge({ emoji: badge.emoji, name: badge.name })
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 flex items-center justify-center">
@@ -42,6 +53,12 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
+
+      {/* ✅ Badge notification — s'affiche en haut à droite */}
+      <BadgeNotification
+        badge={newBadge}
+        onClose={() => setNewBadge(null)}
+      />
 
       {/* NAV */}
       <nav className="flex items-center justify-between px-4 py-4 max-w-6xl mx-auto border-b border-slate-700/50">
@@ -163,32 +180,41 @@ export default function Dashboard() {
         </div>
 
         {/* DÉFI DU JOUR */}
-<Card className="bg-gradient-to-r from-violet-900/50 to-pink-900/50 border-violet-500/30">
-  <CardHeader>
-    <CardTitle className="flex items-center gap-2 text-white">
-      <Flame className="text-orange-400" /> Défi du jour
-    </CardTitle>
-  </CardHeader>
-  <CardContent>
-    <p className="text-slate-300 mb-4">
-      Crée une carte de profil en HTML/CSS avec une image, un nom et une bio.
-    </p>
-    <div className="flex flex-wrap items-center gap-3">
-      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
-        +150 XP
-      </Badge>
-      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-        Badge spécial
-      </Badge>
-      <Link href="/learn/html" className="ml-auto">
-        <Button className="bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white">
-          Relever le défi
-        </Button>
-      </Link>
-    </div>
-  </CardContent>
-</Card>
+        <Card className="bg-gradient-to-r from-violet-900/50 to-pink-900/50 border-violet-500/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Flame className="text-orange-400" /> Défi du jour
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-slate-300 mb-4">
+              Crée une carte de profil en HTML/CSS avec une image, un nom et une bio.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                +150 XP
+              </Badge>
+              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                Badge spécial
+              </Badge>
+              <Link href="/learn/html" className="ml-auto">
+                <Button className="bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white">
+                  Relever le défi
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
+        {/* ✅ Bouton test badge — retire-le en prod */}
+        <div className="text-center">
+          <button
+            onClick={() => triggerBadge(earnedBadgeIds[0])}
+            className="text-xs text-slate-600 hover:text-slate-400 underline"
+          >
+            🧪 Tester une notification de badge
+          </button>
+        </div>
 
       </div>
     </main>

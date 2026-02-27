@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 
+
 interface BadgeNotificationProps {
   badge: { emoji: string; name: string } | null
   onClose: () => void
