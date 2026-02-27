@@ -9,6 +9,7 @@ import { Trophy, Code2, ArrowRight, Users, BookOpen, Award } from "lucide-react"
 import AnimatedCard from "@/components/AnimatedCard"
 import Logo from "@/components/Logo"
 import { useRedirectIfAuthed } from "@/hooks/useRedirectIfAuthed"
+import StatsBar from "@/components/StatsBar"
 
 const stats = [
   { label: "Apprenants actifs", value: "12 400+", icon: Users },
@@ -149,26 +150,7 @@ export default function Home() {
       </section>
 
       {/* STATS */}
-      <section className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((s, i) => (
-          <motion.div
-            key={s.label}
-            custom={i}
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <Card className="bg-slate-800/50 border-slate-700 text-center">
-              <CardContent className="pt-6 pb-4">
-                <s.icon className="mx-auto mb-2 text-violet-400" size={28} />
-                <p className="text-2xl md:text-3xl font-extrabold text-white">{s.value}</p>
-                <p className="text-xs md:text-sm text-slate-400 mt-1">{s.label}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </section>
+        <StatsBar />
 
       {/* LANGAGES */}
       <section className="max-w-6xl mx-auto px-4 py-10">

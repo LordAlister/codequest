@@ -41,6 +41,33 @@ export default function CodeEditor({
       return
     }
 
+    // ✅ CSS FIX — wrap dans un HTML complet pour l'aperçu iframe
+    if (language === "css") {
+      const wrapped = `<!DOCTYPE html>
+<html>
+  <head>
+    <style>${code}</style>
+  </head>
+  <body style="font-family: sans-serif; padding: 1.5rem; background: #0f0f0f; color: white;">
+    <h1>Titre de test</h1>
+    <p>Paragraphe de test</p>
+    <div class="cards">
+      <div class="card">🌐 HTML</div>
+      <div class="card">🎨 CSS</div>
+      <div class="card">⚡ JS</div>
+    </div>
+    <button class="btn">Bouton test</button>
+  </body>
+</html>`
+      setOutput(wrapped)
+      setStatus("success")
+      if (!xpEarned && onSuccess) {
+        onSuccess()
+        setXpEarned(true)
+      }
+      return
+    }
+
     if (language === "javascript") {
       try {
         const logs: string[] = []
@@ -61,7 +88,7 @@ export default function CodeEditor({
       return
     }
 
-    setOutput("✅ Code reçu ! (Python s'exécute côté serveur — bientôt disponible)")
+    setOutput("🐍 Python — bientôt disponible !")
     setStatus("success")
   }
 
@@ -149,11 +176,12 @@ export default function CodeEditor({
           </div>
 
           <div className="p-4 h-[220px] overflow-auto">
-            {language === "html" && output ? (
+            {/* ✅ CSS FIX — iframe pour html ET css */}
+            {(language === "html" || language === "css") && output ? (
               <iframe
                 srcDoc={output}
                 className="w-full h-full rounded bg-white"
-                title="HTML Preview"
+                title="Preview"
                 sandbox="allow-scripts"
               />
             ) : (
