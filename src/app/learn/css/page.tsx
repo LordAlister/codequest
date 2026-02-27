@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useAuth } from "@/hooks/useAuth"
+import { useProgress } from "@/hooks/useProgress"
 import CodeEditor from "@/components/CodeEditor"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -79,14 +81,20 @@ export default function CSSLearnPage() {
   const [justCompleted, setJustCompleted] = useState(false)
   const lesson = lessons[currentLesson]
 
+  // ✅ Fix Bug 1 — imports ajoutés
+  const { userId } = useAuth()
+  const { completeLesson } = useProgress(userId ?? null)
+
   const goToLesson = (index: number) => {
     setCurrentLesson(index)
     setJustCompleted(false)
   }
 
-  const handleSuccess = () => {
+  const handleSuccess = async () => {
     if (!completedLessons.includes(lesson.id)) {
       setCompletedLessons([...completedLessons, lesson.id])
+      // ✅ Fix Bug 2 — "css" au lieu de "html"
+      await completeLesson("css", lesson.id, lesson.xp)
     }
     setJustCompleted(true)
   }
@@ -148,7 +156,7 @@ export default function CSSLearnPage() {
         <CodeEditor
           key={lesson.id}
           defaultCode={lesson.defaultCode}
-          language="html"
+          language="css"  
           instructions={lesson.instructions}
           xpReward={lesson.xp}
           onSuccess={handleSuccess}

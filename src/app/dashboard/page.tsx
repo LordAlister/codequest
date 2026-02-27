@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
+import { useProgress } from "@/hooks/useProgress"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,36 +13,52 @@ import { getEarnedBadges, ALL_BADGES } from "@/lib/badges"
 import Link from "next/link"
 import Logo from "@/components/Logo"
 import BadgeNotification from "@/components/BadgeNotification"
+// Ajoute cette ligne avec les autres imports
+
 
 const languages = [
-  { name: "HTML", emoji: "🌐", color: "from-orange-500 to-orange-600", progress: 60, level: 3, lessons: 12, totalLessons: 20, unlocked: true },
-  { name: "CSS", emoji: "🎨", color: "from-blue-500 to-blue-600", progress: 30, level: 2, lessons: 6, totalLessons: 20, unlocked: true },
-  { name: "JavaScript", emoji: "⚡", color: "from-yellow-500 to-yellow-600", progress: 10, level: 1, lessons: 2, totalLessons: 30, unlocked: true },
-  { name: "Python", emoji: "🐍", color: "from-green-500 to-green-600", progress: 0, level: 0, lessons: 0, totalLessons: 30, unlocked: false },
+  { name: "HTML", emoji: "🌐", color: "from-orange-500 to-orange-600", totalLessons: 20, unlocked: true },
+  { name: "CSS", emoji: "🎨", color: "from-blue-500 to-blue-600", totalLessons: 20, unlocked: true },
+  { name: "JavaScript", emoji: "⚡", color: "from-yellow-500 to-yellow-600", totalLessons: 30, unlocked: true },
+  { name: "Python", emoji: "🐍", color: "from-green-500 to-green-600", totalLessons: 30, unlocked: false },
 ]
 
 export default function Dashboard() {
-  const { loading, username, logout } = useAuth()
+  // ✅ Fix Bug 2 — userId extrait de useAuth
+  const { loading, username, avatar, logout, userId } = useAuth()
+  // ✅ Fix Bug 3 — useProgress importé + userId passé
+  const { progress } = useProgress(userId ?? null)
 
-  // ✅ State pour la notification de badge
   const [newBadge, setNewBadge] = useState<{ emoji: string; name: string } | null>(null)
 
-  const xp = 1240
-  const xpMax = 2000
-  const level = 7
-  const streak = 14
+  const xp = progress.xp
+  const level = progress.level
+  const streak = progress.streak
+  const xpMax = level * 500
+
+  // Leçons complétées par langage depuis Supabase
+  const htmlLessons = progress.completedLessons.filter(l => l.language === "html").length
+  const cssLessons = progress.completedLessons.filter(l => l.language === "css").length
+  const jsLessons = progress.completedLessons.filter(l => l.language === "javascript").length
+  const pythonLessons = progress.completedLessons.filter(l => l.language === "python").length
 
   const earnedBadgeIds = getEarnedBadges({
-    xp, streak,
-    htmlLessons: 3, cssLessons: 1,
-    jsLessons: 1, pythonLessons: 0,
+    xp, streak, htmlLessons, cssLessons, jsLessons, pythonLessons,
   })
 
-  // ✅ Fonction pour déclencher une notification de badge
   const triggerBadge = (id: string) => {
     const badge = ALL_BADGES.find((b) => b.id === id)
     if (badge) setNewBadge({ emoji: badge.emoji, name: badge.name })
   }
+
+  // Langages enrichis avec données réelles
+  const languagesWithProgress = languages.map((lang) => {
+    const completed = progress.completedLessons.filter(
+      l => l.language === lang.name.toLowerCase()
+    ).length
+    const pct = Math.round((completed / lang.totalLessons) * 100)
+    return { ...lang, lessons: completed, progress: pct, level: Math.floor(completed / 5) + 1 }
+  })
 
   if (loading) {
     return (
@@ -54,11 +71,7 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
 
-      {/* ✅ Badge notification — s'affiche en haut à droite */}
-      <BadgeNotification
-        badge={newBadge}
-        onClose={() => setNewBadge(null)}
-      />
+      <BadgeNotification badge={newBadge} onClose={() => setNewBadge(null)} />
 
       {/* NAV */}
       <nav className="flex items-center justify-between px-4 py-4 max-w-6xl mx-auto border-b border-slate-700/50">
@@ -89,7 +102,7 @@ export default function Dashboard() {
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <Link href="/profile">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center text-3xl sm:text-4xl shadow-lg hover:scale-110 transition-all">
-                  ⚔️
+                  {avatar}
                 </div>
               </Link>
               <div className="flex-1 text-center sm:text-left w-full">
@@ -114,7 +127,7 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3 text-center">
                   <BookOpen className="mx-auto mb-1 text-violet-400" size={20} />
-                  <p className="text-lg font-bold">20</p>
+                  <p className="text-lg font-bold">{progress.completedLessons.length}</p>
                   <p className="text-xs text-slate-400">Leçons</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3 text-center">
@@ -127,13 +140,13 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* LANGAGES */}
+        {/* LANGAGES — données réelles */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Code2 className="text-violet-400" /> Tes parcours
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {languages.map((lang) => (
+            {languagesWithProgress.map((lang) => (
               <Card key={lang.name} className={`border-slate-700 transition-all ${lang.unlocked ? "bg-slate-800/50 hover:border-violet-500" : "bg-slate-800/20 opacity-60"}`}>
                 <CardContent className="pt-5 pb-4">
                   <div className="flex items-center justify-between mb-3">
@@ -191,12 +204,8 @@ export default function Dashboard() {
               Crée une carte de profil en HTML/CSS avec une image, un nom et une bio.
             </p>
             <div className="flex flex-wrap items-center gap-3">
-              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
-                +150 XP
-              </Badge>
-              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-                Badge spécial
-              </Badge>
+              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">+150 XP</Badge>
+              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Badge spécial</Badge>
               <Link href="/learn/html" className="ml-auto">
                 <Button className="bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white">
                   Relever le défi
@@ -205,16 +214,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
-        {/* ✅ Bouton test badge — retire-le en prod */}
-        <div className="text-center">
-          <button
-            onClick={() => triggerBadge(earnedBadgeIds[0])}
-            className="text-xs text-slate-600 hover:text-slate-400 underline"
-          >
-            🧪 Tester une notification de badge
-          </button>
-        </div>
 
       </div>
     </main>

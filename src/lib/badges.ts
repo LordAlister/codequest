@@ -90,13 +90,14 @@ export const ALL_BADGES: Badge[] = [
     emoji: "🚀",
     name: "Niveau 5",
     description: "Atteins le niveau 5",
-    xpRequired: 800,
+    xpRequired: 2000, // ✅ Fix Bug 1 — niveau 5 = 4 × 500 XP
   },
   {
     id: "top_player",
     emoji: "🏆",
     name: "Top 10%",
-    description: "Entre dans le top 10% des joueurs",
+    description: "Atteins 3000 XP total",
+    xpRequired: 3000, // ✅ Fix Bug 2 — condition concrète ajoutée
   },
 ]
 

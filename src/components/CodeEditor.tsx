@@ -17,6 +17,7 @@ interface CodeEditorProps {
 
 export default function CodeEditor({
   defaultCode,
+  expectedOutput,
   language,
   instructions,
   xpReward,
@@ -27,26 +28,11 @@ export default function CodeEditor({
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
   const [xpEarned, setXpEarned] = useState(false)
 
-  const runCode = () => {
-    setStatus("idle")
-    setOutput("")
-
-    if (language === "html") {
-      setOutput(code)
-      setStatus("success")
-      if (!xpEarned && onSuccess) {
-        onSuccess()
-        setXpEarned(true)
-      }
-      return
-    }
-
-    // ✅ CSS FIX — wrap dans un HTML complet pour l'aperçu iframe
-    if (language === "css") {
-      const wrapped = `<!DOCTYPE html>
+  // ✅ Helper — wrap CSS dans un HTML complet pour l'iframe
+  const wrapCSS = (cssCode: string) => `<!DOCTYPE html>
 <html>
   <head>
-    <style>${code}</style>
+    <style>${cssCode}</style>
   </head>
   <body style="font-family: sans-serif; padding: 1.5rem; background: #0f0f0f; color: white;">
     <h1>Titre de test</h1>
@@ -59,27 +45,63 @@ export default function CodeEditor({
     <button class="btn">Bouton test</button>
   </body>
 </html>`
-      setOutput(wrapped)
-      setStatus("success")
-      if (!xpEarned && onSuccess) {
-        onSuccess()
-        setXpEarned(true)
+
+  const handleSuccessState = () => {
+    if (!xpEarned && onSuccess) {
+      onSuccess()
+      setXpEarned(true)
+    }
+  }
+
+  const runCode = () => {
+    setStatus("idle")
+    setOutput("")
+
+    // ── HTML ──────────────────────────────────────────────
+    if (language === "html") {
+      if (expectedOutput && !code.includes(expectedOutput)) {
+        setOutput(`❌ Il manque quelque chose dans ton code.\nIndice : cherche "${expectedOutput}"`)
+        setStatus("error")
+        return
       }
+      setOutput(code)
+      setStatus("success")
+      handleSuccessState()
       return
     }
 
+    // ── CSS ───────────────────────────────────────────────
+    if (language === "css") {
+      if (expectedOutput && !code.includes(expectedOutput)) {
+        setOutput(`❌ Il manque quelque chose dans ton code.\nIndice : cherche "${expectedOutput}"`)
+        setStatus("error")
+        return
+      }
+      setOutput(wrapCSS(code))
+      setStatus("success")
+      handleSuccessState()
+      return
+    }
+
+    // ── JAVASCRIPT ────────────────────────────────────────
     if (language === "javascript") {
       try {
         const logs: string[] = []
         const fakeConsole = { log: (...args: unknown[]) => logs.push(args.join(" ")) }
         const fn = new Function("console", code)
         fn(fakeConsole)
-        setOutput(logs.join("\n") || "✅ Code exécuté sans erreur")
-        setStatus("success")
-        if (!xpEarned && onSuccess) {
-          onSuccess()
-          setXpEarned(true)
+        const result = logs.join("\n") || "✅ Code exécuté sans erreur"
+
+        // ✅ Validation sur le RÉSULTAT des logs
+        if (expectedOutput && !result.includes(expectedOutput)) {
+          setOutput(`❌ Résultat incorrect\n\nObtenu :  ${result}\nAttendu : ${expectedOutput}`)
+          setStatus("error")
+          return
         }
+
+        setOutput(result)
+        setStatus("success")
+        handleSuccessState()
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err)
         setOutput(`❌ Erreur : ${message}`)
@@ -88,6 +110,7 @@ export default function CodeEditor({
       return
     }
 
+    // ── PYTHON ────────────────────────────────────────────
     setOutput("🐍 Python — bientôt disponible !")
     setStatus("success")
   }
@@ -176,8 +199,7 @@ export default function CodeEditor({
           </div>
 
           <div className="p-4 h-[220px] overflow-auto">
-            {/* ✅ CSS FIX — iframe pour html ET css */}
-            {(language === "html" || language === "css") && output ? (
+            {(language === "html" || language === "css") && output && status === "success" ? (
               <iframe
                 srcDoc={output}
                 className="w-full h-full rounded bg-white"

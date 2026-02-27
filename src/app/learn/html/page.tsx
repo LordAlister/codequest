@@ -1,6 +1,9 @@
 "use client"
 
 import { useState } from "react"
+// ✅ Fix Bug 1 — imports manquants
+import { useAuth } from "@/hooks/useAuth"
+import { useProgress } from "@/hooks/useProgress"
 import CodeEditor from "@/components/CodeEditor"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -58,15 +61,19 @@ export default function HTMLLearnPage() {
   const [completedLessons, setCompletedLessons] = useState<number[]>([])
   const [justCompleted, setJustCompleted] = useState(false)
   const lesson = lessons[currentLesson]
+  const { userId } = useAuth()
+  const { completeLesson } = useProgress(userId ?? null)
 
   const goToLesson = (index: number) => {
     setCurrentLesson(index)
     setJustCompleted(false)
   }
 
-  const handleSuccess = () => {
+  // ✅ Fix Bug 2 — ajout de async
+  const handleSuccess = async () => {
     if (!completedLessons.includes(lesson.id)) {
       setCompletedLessons([...completedLessons, lesson.id])
+      await completeLesson("html", lesson.id, lesson.xp)
     }
     setJustCompleted(true)
   }

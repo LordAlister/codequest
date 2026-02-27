@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase"
 export function useAuth() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState<string | null>(null)
   const [username, setUsername] = useState("Aventurier")
   const [email, setEmail] = useState("")
   const [avatar, setAvatar] = useState("⚔️")
@@ -14,6 +15,9 @@ export function useAuth() {
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
+
+      // ✅ Fix — utilise session directement
+      setUserId(session?.user?.id ?? null)
 
       if (!session) {
         router.replace("/login")
@@ -34,5 +38,5 @@ export function useAuth() {
     router.replace("/")
   }
 
-  return { loading, username, email, avatar, logout }
+  return { loading, username, email, avatar, userId, logout }
 }
