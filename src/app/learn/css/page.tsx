@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { useProgress } from "@/hooks/useProgress"
 import CodeEditor from "@/components/CodeEditor"
@@ -11,6 +11,8 @@ import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight, Home } from "lucide-react"
 import Link from "next/link"
 import { useHearts } from "@/hooks/useHearts"
+import { supabase } from "@/lib/supabase"
+
 
 const lessons = [
   {
@@ -105,6 +107,24 @@ export default function CSSLearnPage() {
     }
     setJustCompleted(true)
   }
+  useEffect(() => {
+  if (!userId) return
+
+  const load = async () => {
+    const { data } = await supabase
+      .from("progress")
+      .select("lesson_id")
+      .eq("user_id", userId)
+      .eq("language", "css")
+
+    if (data) {
+      setCompletedLessons(data.map((l) => l.lesson_id))
+    }
+  }
+
+  load()
+}, [userId])
+
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">

@@ -16,6 +16,8 @@ import Logo from "@/components/Logo"
 import BadgeNotification from "@/components/BadgeNotification"
 import StatsChart from "@/components/StatsChart"
 import DailyChallenge from "@/components/DailyChallenge"
+import Leaderboard from "@/components/Leaderboard"
+
 
 
 
@@ -261,6 +263,9 @@ export default function Dashboard() {
           </h2>
           <BadgesGrid earnedIds={earnedBadgeIds} />
         </div>
+        {/* LEADERBOARD */}
+        <Leaderboard currentUserId={userId ?? null} />
+
 
         {/* DÉFI DU JOUR */}
 
