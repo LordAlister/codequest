@@ -1,20 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { useProgress } from "@/hooks/useProgress"
+import { supabase } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Trophy, Flame, Star, Code2, LogOut, BookOpen, Zap, Lock } from "lucide-react"
+import { Trophy, Flame, Star, Code2, LogOut, BookOpen, Zap, Lock, Users } from "lucide-react"
 import BadgesGrid from "@/components/BadgesGrid"
 import { getEarnedBadges, ALL_BADGES } from "@/lib/badges"
 import Link from "next/link"
 import Logo from "@/components/Logo"
 import BadgeNotification from "@/components/BadgeNotification"
-// Ajoute cette ligne avec les autres imports
-
 
 const languages = [
   { name: "HTML", emoji: "🌐", color: "from-orange-500 to-orange-600", totalLessons: 20, unlocked: true },
@@ -24,19 +23,51 @@ const languages = [
 ]
 
 export default function Dashboard() {
-  // ✅ Fix Bug 2 — userId extrait de useAuth
   const { loading, username, avatar, logout, userId } = useAuth()
-  // ✅ Fix Bug 3 — useProgress importé + userId passé
   const { progress } = useProgress(userId ?? null)
-
   const [newBadge, setNewBadge] = useState<{ emoji: string; name: string } | null>(null)
+
+  // ✅ STATSBAR LIVE — état
+  const [activeUsers, setActiveUsers] = useState(0)
+  const [topLanguage, setTopLanguage] = useState<string | null>(null)
+
+  // ✅ STATSBAR LIVE — Supabase Presence
+  useEffect(() => {
+    if (!userId) return
+
+    const channel = supabase.channel("online-users", {
+      config: { presence: { key: userId } },
+    })
+
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState<{ language: string }>()
+        const users = Object.values(state)
+        setActiveUsers(users.length)
+
+        // Calcule le langage le plus étudié live
+        const counts: Record<string, number> = {}
+        users.forEach((u) => {
+          const lang = u[0]?.language
+          if (lang) counts[lang] = (counts[lang] ?? 0) + 1
+        })
+        const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
+        setTopLanguage(top ? top[0] : null)
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ language: "dashboard" })
+        }
+      })
+
+    return () => { supabase.removeChannel(channel) }
+  }, [userId])
 
   const xp = progress.xp
   const level = progress.level
   const streak = progress.streak
   const xpMax = level * 500
 
-  // Leçons complétées par langage depuis Supabase
   const htmlLessons = progress.completedLessons.filter(l => l.language === "html").length
   const cssLessons = progress.completedLessons.filter(l => l.language === "css").length
   const jsLessons = progress.completedLessons.filter(l => l.language === "javascript").length
@@ -46,12 +77,6 @@ export default function Dashboard() {
     xp, streak, htmlLessons, cssLessons, jsLessons, pythonLessons,
   })
 
-  const triggerBadge = (id: string) => {
-    const badge = ALL_BADGES.find((b) => b.id === id)
-    if (badge) setNewBadge({ emoji: badge.emoji, name: badge.name })
-  }
-
-  // Langages enrichis avec données réelles
   const languagesWithProgress = languages.map((lang) => {
     const completed = progress.completedLessons.filter(
       l => l.language === lang.name.toLowerCase()
@@ -96,6 +121,28 @@ export default function Dashboard() {
 
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
 
+        {/* ✅ STATSBAR LIVE */}
+        
+                <div className="flex flex-wrap items-center gap-3 bg-slate-800/40 border border-slate-700/50 rounded-2xl px-5 py-3">
+                <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    <Users className="w-4 h-4 text-green-400" />
+                    <span className="text-sm text-slate-300">
+                    <span className="font-bold text-green-400">{activeUsers}</span> apprenant{activeUsers > 1 ? "s" : ""} en ligne
+                    </span>
+                </div>
+                {topLanguage && topLanguage !== "dashboard" && (
+                    <>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-sm text-slate-300">
+                        🔥 Langage le plus étudié :{" "}
+                        <span className="font-bold text-violet-400 capitalize">{topLanguage}</span>
+                    </span>
+                    </>
+                )}
+                </div>
+
+
         {/* PROFIL HERO */}
         <Card className="bg-slate-800/50 border-slate-700">
           <CardContent className="pt-6">
@@ -107,7 +154,7 @@ export default function Dashboard() {
               </Link>
               <div className="flex-1 text-center sm:text-left w-full">
                 <h1 className="text-xl sm:text-2xl font-extrabold text-white">
-                  Salut, {username} ! 👋
+                  Salut, {username || "Aventurier"} ! 👋
                 </h1>
                 <p className="text-slate-400 mb-3 text-sm">Niveau {level} — Aventurier du Code</p>
                 <div className="w-full max-w-md mx-auto sm:mx-0">
@@ -140,7 +187,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* LANGAGES — données réelles */}
+        {/* LANGAGES */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Code2 className="text-violet-400" /> Tes parcours
