@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-// ✅ Fix Bug 1 — imports manquants
 import { useAuth } from "@/hooks/useAuth"
 import { useProgress } from "@/hooks/useProgress"
 import CodeEditor from "@/components/CodeEditor"
+import BadgeNotification from "@/components/BadgeNotification"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -49,19 +49,19 @@ export default function JSLearnPage() {
   const [completedLessons, setCompletedLessons] = useState<number[]>([])
   const [justCompleted, setJustCompleted] = useState(false)
   const lesson = lessons[currentLesson]
+
   const { userId } = useAuth()
-  const { completeLesson } = useProgress(userId ?? null)
+  // ✅ newBadge + clearBadge ajoutés
+  const { completeLesson, newBadge, clearBadge } = useProgress(userId ?? null)
 
   const goToLesson = (index: number) => {
     setCurrentLesson(index)
     setJustCompleted(false)
   }
 
-  // ✅ Fix Bug 2 — ajout de async
   const handleSuccess = async () => {
     if (!completedLessons.includes(lesson.id)) {
       setCompletedLessons([...completedLessons, lesson.id])
-      // ✅ Fix Bug 3 — "javascript" au lieu de "html"
       await completeLesson("javascript", lesson.id, lesson.xp)
     }
     setJustCompleted(true)
@@ -69,6 +69,10 @@ export default function JSLearnPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
+
+      {/* ✅ Badge notification live */}
+      <BadgeNotification badge={newBadge} onClose={clearBadge} />
+
       <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50 max-w-7xl mx-auto">
         <Link href="/dashboard">
           <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">

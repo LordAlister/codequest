@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
+import { getEarnedBadges, ALL_BADGES } from "@/lib/badges"
 
 interface Progress {
   xp: number
   level: number
   streak: number
-  lastSeenAt: string | null  // ✅ Ajouté pour calculer le streak
+  lastSeenAt: string | null
   completedLessons: { language: string; lesson_id: number }[]
 }
 
@@ -20,8 +21,9 @@ export function useProgress(userId: string | null) {
     completedLessons: [],
   })
   const [loading, setLoading] = useState(true)
+  // ✅ NOUVEAU — badge à afficher
+  const [newBadge, setNewBadge] = useState<{ emoji: string; name: string } | null>(null)
 
-  // ── Charge la progression depuis Supabase
   const fetchProgress = useCallback(async () => {
     if (!userId) return
     setLoading(true)
@@ -36,40 +38,30 @@ export function useProgress(userId: string | null) {
         xp: profile.xp ?? 0,
         level: profile.level ?? 1,
         streak: profile.streak ?? 0,
-        lastSeenAt: profile.last_seen_at ?? null,  // ✅ Stocké dans le state
+        lastSeenAt: profile.last_seen_at ?? null,
         completedLessons: lessons ?? [],
       })
     }
     setLoading(false)
   }, [userId])
 
-useEffect(() => {
-  if (!userId) return
-  fetchProgress()
+  useEffect(() => {
+    if (!userId) return
+    fetchProgress()
 
-  const channel = supabase
-    .channel(`profile-${userId}`)
-    .on(
-      "postgres_changes",
-      {
+    const channel = supabase
+      .channel(`profile-${userId}`)
+      .on("postgres_changes", {
         event: "UPDATE",
         schema: "public",
         table: "profiles",
         filter: `id=eq.${userId}`,
-      },
-      () => {
-        fetchProgress()
-      }
-    )
-    .subscribe()
+      }, () => { fetchProgress() })
+      .subscribe()
 
-  return () => {
-    supabase.removeChannel(channel)
-  }
-}, [fetchProgress, userId])
+    return () => { supabase.removeChannel(channel) }
+  }, [fetchProgress, userId])
 
-
-  // ── Complète une leçon + ajoute XP + met à jour le streak
   const completeLesson = useCallback(async (
     language: string,
     lessonId: number,
@@ -77,19 +69,15 @@ useEffect(() => {
   ) => {
     if (!userId) return
 
-    // 1. Calcul du nouveau streak
     const today = new Date().toDateString()
     const lastSeen = new Date(progress.lastSeenAt ?? 0).toDateString()
     const yesterday = new Date(Date.now() - 86400000).toDateString()
 
     const newStreak =
-      lastSeen === yesterday
-        ? progress.streak + 1  // ✅ Connecté hier → +1
-        : lastSeen === today
-        ? progress.streak       // ✅ Déjà compté aujourd'hui
-        : 1                     // ❌ Série brisée → repart à 1
+      lastSeen === yesterday ? progress.streak + 1
+      : lastSeen === today ? progress.streak
+      : 1
 
-    // 2. Insère la leçon complétée (ignore si déjà faite)
     await supabase.from("progress").upsert({
       user_id: userId,
       language,
@@ -97,7 +85,6 @@ useEffect(() => {
       xp_earned: xpReward,
     }, { onConflict: "user_id,language,lesson_id" })
 
-    // 3. Met à jour XP + level + streak dans profiles
     const newXp = progress.xp + xpReward
     const newLevel = Math.floor(newXp / 500) + 1
     const now = new Date().toISOString()
@@ -106,23 +93,54 @@ useEffect(() => {
       id: userId,
       xp: newXp,
       level: newLevel,
-      streak: newStreak,       // ✅ Streak mis à jour en base
+      streak: newStreak,
       last_seen_at: now,
     }, { onConflict: "id" })
 
-    // 4. Met à jour le state local immédiatement
+    // ✅ Calcul badges avant et après pour détecter le nouveau
+    const newLessons = [...progress.completedLessons, { language, lesson_id: lessonId }]
+
+    const htmlLessons = newLessons.filter(l => l.language === "html").length
+    const cssLessons = newLessons.filter(l => l.language === "css").length
+    const jsLessons = newLessons.filter(l => l.language === "javascript").length
+    const pythonLessons = newLessons.filter(l => l.language === "python").length
+
+    const badgesBefore = getEarnedBadges({
+      xp: progress.xp, streak: progress.streak,
+      htmlLessons: progress.completedLessons.filter(l => l.language === "html").length,
+      cssLessons: progress.completedLessons.filter(l => l.language === "css").length,
+      jsLessons: progress.completedLessons.filter(l => l.language === "javascript").length,
+      pythonLessons: progress.completedLessons.filter(l => l.language === "python").length,
+    })
+
+    const badgesAfter = getEarnedBadges({
+      xp: newXp, streak: newStreak,
+      htmlLessons, cssLessons, jsLessons, pythonLessons,
+    })
+
+    // ✅ Si un nouveau badge est détecté → on déclenche la notif
+    const unlocked = badgesAfter.find(id => !badgesBefore.includes(id))
+    if (unlocked) {
+      const badge = ALL_BADGES.find(b => b.id === unlocked)
+      if (badge) setNewBadge({ emoji: badge.emoji, name: badge.name })
+    }
+
     setProgress((prev) => ({
       ...prev,
       xp: newXp,
       level: newLevel,
-      streak: newStreak,       // ✅ Streak mis à jour dans l'UI
+      streak: newStreak,
       lastSeenAt: now,
-      completedLessons: [
-        ...prev.completedLessons,
-        { language, lesson_id: lessonId },
-      ],
+      completedLessons: newLessons,
     }))
-  }, [userId, progress.xp, progress.streak, progress.lastSeenAt])
+  }, [userId, progress])
 
-  return { progress, loading, completeLesson, refetch: fetchProgress }
+  return {
+    progress,
+    loading,
+    completeLesson,
+    refetch: fetchProgress,
+    newBadge,                                         // ✅ NOUVEAU
+    clearBadge: () => setNewBadge(null),              // ✅ NOUVEAU
+  }
 }
