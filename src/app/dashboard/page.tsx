@@ -15,6 +15,8 @@ import Link from "next/link"
 import Logo from "@/components/Logo"
 import BadgeNotification from "@/components/BadgeNotification"
 import StatsChart from "@/components/StatsChart"
+import DailyChallenge from "@/components/DailyChallenge"
+
 
 
 const languages = [
@@ -232,7 +234,7 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-        
+
             {/* STATS LANGAGES */}
             <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
@@ -261,27 +263,9 @@ export default function Dashboard() {
         </div>
 
         {/* DÉFI DU JOUR */}
-        <Card className="bg-gradient-to-r from-violet-900/50 to-pink-900/50 border-violet-500/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Flame className="text-orange-400" /> Défi du jour
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate-300 mb-4">
-              Crée une carte de profil en HTML/CSS avec une image, un nom et une bio.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">+150 XP</Badge>
-              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Badge spécial</Badge>
-              <Link href="/learn/html" className="ml-auto">
-                <Button className="bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white">
-                  Relever le défi
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+
+        <DailyChallenge />
+
 
       </div>
     </main>
