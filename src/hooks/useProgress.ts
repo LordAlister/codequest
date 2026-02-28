@@ -43,9 +43,31 @@ export function useProgress(userId: string | null) {
     setLoading(false)
   }, [userId])
 
-  useEffect(() => {
-    fetchProgress()
-  }, [fetchProgress])
+useEffect(() => {
+  if (!userId) return
+  fetchProgress()
+
+  const channel = supabase
+    .channel(`profile-${userId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "profiles",
+        filter: `id=eq.${userId}`,
+      },
+      () => {
+        fetchProgress()
+      }
+    )
+    .subscribe()
+
+  return () => {
+    supabase.removeChannel(channel)
+  }
+}, [fetchProgress, userId])
+
 
   // ── Complète une leçon + ajoute XP + met à jour le streak
   const completeLesson = useCallback(async (
