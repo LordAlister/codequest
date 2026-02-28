@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
+import { useProgress } from "@/hooks/useProgress"
 import { supabase } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,20 +18,27 @@ import Link from "next/link"
 const avatars = ["⚔️", "🧙", "🦊", "🐉", "🚀", "⭐", "🎮", "🦁", "🐺", "🔥"]
 
 export default function ProfilePage() {
-  const { loading, username: initialUsername, email, avatar: initialAvatar, logout } = useAuth()
+  const { loading, userId, username: initialUsername, email, avatar: initialAvatar, logout } = useAuth()
+  const { progress } = useProgress(userId)
   const [username, setUsername] = useState("")
   const [selectedAvatar, setSelectedAvatar] = useState("⚔️")
   const [saved, setSaved] = useState(false)
 
-  const xp = 1240
-  const xpMax = 2000
-  const level = 7
-  const streak = 14
+  // ✅ Valeurs réelles depuis Supabase
+  const xp = progress.xp
+  const level = progress.level
+  const streak = progress.streak
+  const xpMax = level * 500
+  const xpInLevel = xp - (level - 1) * 500
+
+  const htmlLessons = progress.completedLessons.filter(l => l.language === "html").length
+  const cssLessons = progress.completedLessons.filter(l => l.language === "css").length
+  const jsLessons = progress.completedLessons.filter(l => l.language === "javascript").length
+  const pythonLessons = progress.completedLessons.filter(l => l.language === "python").length
 
   const earnedBadgeIds = getEarnedBadges({
     xp, streak,
-    htmlLessons: 3, cssLessons: 1,
-    jsLessons: 1, pythonLessons: 0,
+    htmlLessons, cssLessons, jsLessons, pythonLessons,
   })
 
   useEffect(() => {
@@ -41,10 +49,12 @@ export default function ProfilePage() {
   }, [loading, initialUsername, initialAvatar])
 
   const handleSave = async () => {
-    const { error } = await supabase.auth.updateUser({
-      data: { username, avatar: selectedAvatar },
-    })
-    if (!error) {
+    // ✅ Sauvegarde username + avatar dans profiles ET auth
+    const [{ error: authError }] = await Promise.all([
+      supabase.auth.updateUser({ data: { username, avatar: selectedAvatar } }),
+      supabase.from("profiles").update({ username, avatar: selectedAvatar }).eq("id", userId),
+    ])
+    if (!authError) {
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     }
@@ -86,7 +96,8 @@ export default function ProfilePage() {
                 {selectedAvatar}
               </div>
               <div className="text-center sm:text-left flex-1">
-                <h1 className="text-2xl font-extrabold">{username}</h1>
+                {/* ✅ Affiche "Aventurier" si username est NULL */}
+                <h1 className="text-2xl font-extrabold">{username || "Aventurier"}</h1>
                 <p className="text-slate-400 text-sm">{email}</p>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
                   <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30">
@@ -104,9 +115,10 @@ export default function ProfilePage() {
                 <p className="text-3xl font-extrabold text-violet-400">{xp}</p>
                 <p className="text-xs text-slate-400">XP Total</p>
                 <div className="w-24 mt-2">
-                  <Progress value={(xp / xpMax) * 100} className="h-2 bg-slate-700" />
+                  {/* ✅ Barre de progression dans le niveau actuel */}
+                  <Progress value={(xpInLevel / 500) * 100} className="h-2 bg-slate-700" />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">{xpMax - xp} XP → Niv. {level + 1}</p>
+                <p className="text-xs text-slate-500 mt-1">{500 - xpInLevel} XP → Niv. {level + 1}</p>
               </div>
             </div>
           </CardContent>
@@ -164,6 +176,24 @@ export default function ProfilePage() {
                 <p className="text-2xl mb-1">{stat.emoji}</p>
                 <p className="text-2xl font-extrabold text-white">{stat.value}</p>
                 <p className="text-xs text-slate-400 mt-1">{stat.label}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* LEÇONS PAR LANGAGE ✅ NOUVEAU */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { label: "HTML", value: htmlLessons, emoji: "🌐" },
+            { label: "CSS", value: cssLessons, emoji: "🎨" },
+            { label: "JavaScript", value: jsLessons, emoji: "⚡" },
+            { label: "Python", value: pythonLessons, emoji: "🐍" },
+          ].map((stat) => (
+            <Card key={stat.label} className="bg-slate-800/50 border-slate-700 text-center">
+              <CardContent className="pt-5 pb-4">
+                <p className="text-2xl mb-1">{stat.emoji}</p>
+                <p className="text-2xl font-extrabold text-white">{stat.value}</p>
+                <p className="text-xs text-slate-400 mt-1">{stat.label} leçons</p>
               </CardContent>
             </Card>
           ))}
