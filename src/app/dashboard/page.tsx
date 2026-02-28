@@ -14,6 +14,8 @@ import { getEarnedBadges, ALL_BADGES } from "@/lib/badges"
 import Link from "next/link"
 import Logo from "@/components/Logo"
 import BadgeNotification from "@/components/BadgeNotification"
+import StatsChart from "@/components/StatsChart"
+
 
 const languages = [
   { name: "HTML", emoji: "🌐", color: "from-orange-500 to-orange-600", totalLessons: 20, unlocked: true },
@@ -122,7 +124,7 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
 
         {/* ✅ STATSBAR LIVE */}
-        
+
                 <div className="flex flex-wrap items-center gap-3 bg-slate-800/40 border border-slate-700/50 rounded-2xl px-5 py-3">
                 <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -230,6 +232,25 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+        
+            {/* STATS LANGAGES */}
+            <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader>
+                <CardTitle className="text-white text-lg flex items-center gap-2">
+                📊 Mes stats par langage
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <StatsChart
+                htmlLessons={htmlLessons}
+                cssLessons={cssLessons}
+                jsLessons={jsLessons}
+                pythonLessons={pythonLessons}
+                />
+            </CardContent>
+            </Card>
+
+
 
         {/* BADGES */}
         <div>
