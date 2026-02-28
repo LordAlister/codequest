@@ -5,6 +5,7 @@ import Editor from "@monaco-editor/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Play, RotateCcw, CheckCircle2, XCircle } from "lucide-react"
+import HeartsBar from "@/components/HeartsBar"
 
 interface CodeEditorProps {
   defaultCode: string
@@ -13,6 +14,11 @@ interface CodeEditorProps {
   instructions: string
   xpReward: number
   onSuccess?: () => void
+  // ✅ NOUVEAU — cœurs
+  hearts?: number
+  maxHearts?: number
+  nextRefill?: Date | null
+  onError?: () => void
 }
 
 export default function CodeEditor({
@@ -22,13 +28,16 @@ export default function CodeEditor({
   instructions,
   xpReward,
   onSuccess,
+  hearts = 5,
+  maxHearts = 5,
+  nextRefill = null,
+  onError,
 }: CodeEditorProps) {
   const [code, setCode] = useState(defaultCode)
   const [output, setOutput] = useState("")
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
   const [xpEarned, setXpEarned] = useState(false)
 
-  // ✅ Helper — wrap CSS dans un HTML complet pour l'iframe
   const wrapCSS = (cssCode: string) => `<!DOCTYPE html>
 <html>
   <head>
@@ -53,7 +62,19 @@ export default function CodeEditor({
     }
   }
 
+  // ✅ Appelé à chaque erreur → perd un cœur
+  const handleErrorState = () => {
+    if (onError) onError()
+  }
+
   const runCode = () => {
+    // ✅ Bloqué si 0 cœurs
+    if (hearts <= 0) {
+      setOutput("💔 Tu n'as plus de cœurs ! Attends la recharge pour continuer.")
+      setStatus("error")
+      return
+    }
+
     setStatus("idle")
     setOutput("")
 
@@ -62,6 +83,7 @@ export default function CodeEditor({
       if (expectedOutput && !code.includes(expectedOutput)) {
         setOutput(`❌ Il manque quelque chose dans ton code.\nIndice : cherche "${expectedOutput}"`)
         setStatus("error")
+        handleErrorState() // ✅ -1 cœur
         return
       }
       setOutput(code)
@@ -75,6 +97,7 @@ export default function CodeEditor({
       if (expectedOutput && !code.includes(expectedOutput)) {
         setOutput(`❌ Il manque quelque chose dans ton code.\nIndice : cherche "${expectedOutput}"`)
         setStatus("error")
+        handleErrorState() // ✅ -1 cœur
         return
       }
       setOutput(wrapCSS(code))
@@ -92,10 +115,10 @@ export default function CodeEditor({
         fn(fakeConsole)
         const result = logs.join("\n") || "✅ Code exécuté sans erreur"
 
-        // ✅ Validation sur le RÉSULTAT des logs
         if (expectedOutput && !result.includes(expectedOutput)) {
           setOutput(`❌ Résultat incorrect\n\nObtenu :  ${result}\nAttendu : ${expectedOutput}`)
           setStatus("error")
+          handleErrorState() // ✅ -1 cœur
           return
         }
 
@@ -106,6 +129,7 @@ export default function CodeEditor({
         const message = err instanceof Error ? err.message : String(err)
         setOutput(`❌ Erreur : ${message}`)
         setStatus("error")
+        handleErrorState() // ✅ -1 cœur
       }
       return
     }
@@ -128,7 +152,11 @@ export default function CodeEditor({
       {/* PANNEAU GAUCHE — Éditeur */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <Badge className="bg-violet-600 text-white capitalize">{language}</Badge>
+          <div className="flex items-center gap-3">
+            <Badge className="bg-violet-600 text-white capitalize">{language}</Badge>
+            {/* ✅ HEARTS BAR */}
+            <HeartsBar hearts={hearts} maxHearts={maxHearts} nextRefill={nextRefill} />
+          </div>
           <div className="flex gap-2">
             <Button
               onClick={resetCode}
@@ -141,7 +169,8 @@ export default function CodeEditor({
             <Button
               onClick={runCode}
               size="sm"
-              className="bg-green-600 hover:bg-green-500 text-white"
+              disabled={hearts <= 0} // ✅ Bouton désactivé si 0 cœurs
+              className="bg-green-600 hover:bg-green-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Play className="w-4 h-4 mr-1" /> Exécuter
             </Button>
@@ -218,6 +247,18 @@ export default function CodeEditor({
         {xpEarned && (
           <div className="bg-gradient-to-r from-violet-900/60 to-pink-900/60 border border-violet-500/30 rounded-xl p-3 text-center animate-pulse">
             <p className="text-white font-bold">🎉 +{xpReward} XP gagnés !</p>
+          </div>
+        )}
+
+        {/* ✅ Message 0 cœurs */}
+        {hearts <= 0 && (
+          <div className="bg-red-900/40 border border-red-500/30 rounded-xl p-3 text-center">
+            <p className="text-red-400 font-bold">💔 Plus de cœurs !</p>
+            <p className="text-slate-400 text-xs mt-1">
+              {nextRefill
+                ? `Prochain cœur dans ${Math.ceil((nextRefill.getTime() - Date.now()) / 60000)} min`
+                : "Reviens plus tard..."}
+            </p>
           </div>
         )}
       </div>

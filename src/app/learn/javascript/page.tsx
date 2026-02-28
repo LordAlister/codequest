@@ -10,12 +10,14 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight, Home } from "lucide-react"
 import Link from "next/link"
+import { useHearts } from "@/hooks/useHearts"
 
 const lessons = [
   {
     id: 1,
     title: "Variables et console.log",
     xp: 50,
+    expectedOutput: "Bonjour CodeQuest",  // ✅ mot clé à chercher
     instructions: "Déclare une variable 'name' avec ton prénom et une variable 'age' avec ton âge. Affiche-les avec console.log().",
     defaultCode: `// Déclare tes variables ici
 const name = ""
@@ -28,6 +30,7 @@ const age = 0
     id: 2,
     title: "Conditions",
     xp: 75,
+    expectedOutput: "picsum.photos",  // ✅
     instructions: "Écris une condition if/else : si age >= 18, affiche 'Majeur', sinon affiche 'Mineur'. Utilise la variable age = 20.",
     defaultCode: `const age = 20
 
@@ -38,6 +41,7 @@ const age = 0
     id: 3,
     title: "Boucles",
     xp: 100,
+    expectedOutput: "<ul>",  // ✅
     instructions: "Crée une boucle for qui affiche les nombres de 1 à 5 avec console.log().",
     defaultCode: `// Écris ta boucle ici
 `,
@@ -53,6 +57,7 @@ export default function JSLearnPage() {
   const { userId } = useAuth()
   // ✅ newBadge + clearBadge ajoutés
   const { completeLesson, newBadge, clearBadge } = useProgress(userId ?? null)
+  const { hearts, maxHearts, nextRefill, loseHeart } = useHearts(userId ?? null)
 
   const goToLesson = (index: number) => {
     setCurrentLesson(index)
@@ -132,6 +137,12 @@ export default function JSLearnPage() {
           instructions={lesson.instructions}
           xpReward={lesson.xp}
           onSuccess={handleSuccess}
+          expectedOutput={lesson.expectedOutput}  // ✅ AJOUTE ÇA
+          hearts={hearts}           // ✅
+          maxHearts={maxHearts}     // ✅
+          nextRefill={nextRefill}   // ✅
+          onError={loseHeart}       // ✅
+
         />
 
         {justCompleted && (

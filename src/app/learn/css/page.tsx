@@ -10,12 +10,14 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight, Home } from "lucide-react"
 import Link from "next/link"
+import { useHearts } from "@/hooks/useHearts"
 
 const lessons = [
   {
     id: 1,
     title: "Couleurs et Fonds",
     xp: 50,
+    expectedOutput: "Bonjour CodeQuest",  // ✅ mot clé à chercher
     instructions: "Style la page : donne au body un fond noir (#0f0f0f), au h1 une couleur violette (#7c3aed) et une taille de 2rem, au paragraphe une couleur grise (#94a3b8).",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -36,6 +38,7 @@ const lessons = [
     id: 2,
     title: "Flexbox",
     xp: 75,
+    expectedOutput: "picsum.photos",  // ✅
     instructions: "Centre les 3 cartes horizontalement avec flexbox. Utilise display:flex, justify-content:center et gap:1rem sur le conteneur .cards.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -59,6 +62,7 @@ const lessons = [
     id: 3,
     title: "Animations CSS",
     xp: 100,
+    expectedOutput: "<ul>",  // ✅
     instructions: "Crée une animation 'pulse' avec @keyframes qui fait passer l'opacité de 1 à 0.4 et retour. Applique-la au titre avec animation: pulse 2s infinite.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -85,6 +89,7 @@ export default function CSSLearnPage() {
   const { userId } = useAuth()
   // ✅ newBadge + clearBadge ajoutés
   const { completeLesson, newBadge, clearBadge } = useProgress(userId ?? null)
+  const { hearts, maxHearts, nextRefill, loseHeart } = useHearts(userId ?? null)
 
   const goToLesson = (index: number) => {
     setCurrentLesson(index)
@@ -164,6 +169,11 @@ export default function CSSLearnPage() {
           instructions={lesson.instructions}
           xpReward={lesson.xp}
           onSuccess={handleSuccess}
+          expectedOutput={lesson.expectedOutput}  // ✅ AJOUTE ÇA
+          hearts={hearts}           // ✅
+          maxHearts={maxHearts}     // ✅
+          nextRefill={nextRefill}   // ✅
+          onError={loseHeart}       // ✅
         />
 
         {justCompleted && (

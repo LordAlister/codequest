@@ -10,12 +10,14 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight, Home } from "lucide-react"
 import Link from "next/link"
+import { useHearts } from "@/hooks/useHearts"
 
 const lessons = [
   {
     id: 1,
     title: "Ma première page",
     xp: 50,
+    expectedOutput: "Bonjour CodeQuest",  // ✅ mot clé à chercher
     instructions: "Crée une page HTML avec un titre <h1> qui dit 'Bonjour CodeQuest !' et un paragraphe <p> qui dit 'J'apprends le HTML !'.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -32,6 +34,7 @@ const lessons = [
     id: 2,
     title: "Liens et Images",
     xp: 75,
+    expectedOutput: "picsum.photos",  // ✅
     instructions: "Ajoute un lien <a> vers https://codequest.dev avec le texte 'Visiter CodeQuest' et une image <img> avec src='https://picsum.photos/200' et alt='Photo'.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -45,6 +48,7 @@ const lessons = [
     id: 3,
     title: "Listes et Tableaux",
     xp: 100,
+    expectedOutput: "<ul>",
     instructions: "Crée une liste non-ordonnée <ul> avec 3 langages de programmation, puis un tableau <table> avec 2 colonnes (Langage, Difficulté) et 2 lignes.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -61,10 +65,12 @@ export default function HTMLLearnPage() {
   const [completedLessons, setCompletedLessons] = useState<number[]>([])
   const [justCompleted, setJustCompleted] = useState(false)
   const lesson = lessons[currentLesson]
+  
 
   const { userId } = useAuth()
   // ✅ newBadge + clearBadge ajoutés
   const { completeLesson, newBadge, clearBadge } = useProgress(userId ?? null)
+  const { hearts, maxHearts, nextRefill, loseHeart } = useHearts(userId ?? null)
 
   const goToLesson = (index: number) => {
     setCurrentLesson(index)
@@ -144,6 +150,11 @@ export default function HTMLLearnPage() {
           instructions={lesson.instructions}
           xpReward={lesson.xp}
           onSuccess={handleSuccess}
+          expectedOutput={lesson.expectedOutput}  // ✅ AJOUTE ÇA
+          hearts={hearts}           // ✅
+          maxHearts={maxHearts}     // ✅
+          nextRefill={nextRefill}   // ✅
+          onError={loseHeart}       // ✅
         />
 
         {justCompleted && (
