@@ -17,7 +17,8 @@ const lessons = [
     id: 1,
     title: "Variables et console.log",
     xp: 50,
-    expectedOutput: "Bonjour CodeQuest",  // ✅ mot clé à chercher
+    expectedOutput: "name",
+    hint: "Utilise 'const name = \"ton prénom\"' puis 'console.log(name)' pour afficher la valeur.",
     instructions: "Déclare une variable 'name' avec ton prénom et une variable 'age' avec ton âge. Affiche-les avec console.log().",
     defaultCode: `// Déclare tes variables ici
 const name = ""
@@ -30,7 +31,8 @@ const age = 0
     id: 2,
     title: "Conditions",
     xp: 75,
-    expectedOutput: "picsum.photos",  // ✅
+    expectedOutput: "Majeur",
+    hint: "Utilise 'if (age >= 18) { ... } else { ... }' pour vérifier la condition.",
     instructions: "Écris une condition if/else : si age >= 18, affiche 'Majeur', sinon affiche 'Mineur'. Utilise la variable age = 20.",
     defaultCode: `const age = 20
 
@@ -41,7 +43,8 @@ const age = 0
     id: 3,
     title: "Boucles",
     xp: 100,
-    expectedOutput: "<ul>",  // ✅
+    expectedOutput: "5",
+    hint: "Commence par 'for (let i = 1; i <= 5; i++)' puis console.log(i) à l'intérieur.",
     instructions: "Crée une boucle for qui affiche les nombres de 1 à 5 avec console.log().",
     defaultCode: `// Écris ta boucle ici
 `,
@@ -55,7 +58,6 @@ export default function JSLearnPage() {
   const lesson = lessons[currentLesson]
 
   const { userId } = useAuth()
-  // ✅ newBadge + clearBadge ajoutés
   const { completeLesson, newBadge, clearBadge } = useProgress(userId ?? null)
   const { hearts, maxHearts, nextRefill, loseHeart } = useHearts(userId ?? null)
 
@@ -75,7 +77,6 @@ export default function JSLearnPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
 
-      {/* ✅ Badge notification live */}
       <BadgeNotification badge={newBadge} onClose={clearBadge} />
 
       <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50 max-w-7xl mx-auto">
@@ -137,12 +138,12 @@ export default function JSLearnPage() {
           instructions={lesson.instructions}
           xpReward={lesson.xp}
           onSuccess={handleSuccess}
-          expectedOutput={lesson.expectedOutput}  // ✅ AJOUTE ÇA
-          hearts={hearts}           // ✅
-          maxHearts={maxHearts}     // ✅
-          nextRefill={nextRefill}   // ✅
-          onError={loseHeart}       // ✅
-
+          expectedOutput={lesson.expectedOutput}
+          hint={lesson.hint}
+          hearts={hearts}
+          maxHearts={maxHearts}
+          nextRefill={nextRefill}
+          onError={loseHeart}
         />
 
         {justCompleted && (

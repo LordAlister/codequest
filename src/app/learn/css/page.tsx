@@ -17,7 +17,8 @@ const lessons = [
     id: 1,
     title: "Couleurs et Fonds",
     xp: 50,
-    expectedOutput: "Bonjour CodeQuest",  // ✅ mot clé à chercher
+    expectedOutput: "#7c3aed",
+    hint: "Utilise la propriété 'color' pour changer la couleur du texte, et 'background' pour le fond.",
     instructions: "Style la page : donne au body un fond noir (#0f0f0f), au h1 une couleur violette (#7c3aed) et une taille de 2rem, au paragraphe une couleur grise (#94a3b8).",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -38,7 +39,8 @@ const lessons = [
     id: 2,
     title: "Flexbox",
     xp: 75,
-    expectedOutput: "picsum.photos",  // ✅
+    expectedOutput: "display:flex",
+    hint: "Ajoute 'display:flex' sur le conteneur .cards pour aligner les éléments horizontalement.",
     instructions: "Centre les 3 cartes horizontalement avec flexbox. Utilise display:flex, justify-content:center et gap:1rem sur le conteneur .cards.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -62,7 +64,8 @@ const lessons = [
     id: 3,
     title: "Animations CSS",
     xp: 100,
-    expectedOutput: "<ul>",  // ✅
+    expectedOutput: "@keyframes",
+    hint: "Définis @keyframes pulse avec 'from { opacity: 1 }' et 'to { opacity: 0.4 }', puis applique-la au h1.",
     instructions: "Crée une animation 'pulse' avec @keyframes qui fait passer l'opacité de 1 à 0.4 et retour. Applique-la au titre avec animation: pulse 2s infinite.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -87,7 +90,6 @@ export default function CSSLearnPage() {
   const lesson = lessons[currentLesson]
 
   const { userId } = useAuth()
-  // ✅ newBadge + clearBadge ajoutés
   const { completeLesson, newBadge, clearBadge } = useProgress(userId ?? null)
   const { hearts, maxHearts, nextRefill, loseHeart } = useHearts(userId ?? null)
 
@@ -107,7 +109,6 @@ export default function CSSLearnPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
 
-      {/* ✅ Badge notification live */}
       <BadgeNotification badge={newBadge} onClose={clearBadge} />
 
       <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50 max-w-7xl mx-auto">
@@ -169,11 +170,12 @@ export default function CSSLearnPage() {
           instructions={lesson.instructions}
           xpReward={lesson.xp}
           onSuccess={handleSuccess}
-          expectedOutput={lesson.expectedOutput}  // ✅ AJOUTE ÇA
-          hearts={hearts}           // ✅
-          maxHearts={maxHearts}     // ✅
-          nextRefill={nextRefill}   // ✅
-          onError={loseHeart}       // ✅
+          expectedOutput={lesson.expectedOutput}
+          hint={lesson.hint}
+          hearts={hearts}
+          maxHearts={maxHearts}
+          nextRefill={nextRefill}
+          onError={loseHeart}
         />
 
         {justCompleted && (

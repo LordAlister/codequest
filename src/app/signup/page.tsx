@@ -18,26 +18,40 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+const handleSignup = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setError("")
 
-    const { error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password: password.trim(),
-      options: { data: { username, avatar: "⚔️" } },
-    })
-
-    if (error) {
-      setError(`Erreur: ${error.message}`)
-      setLoading(false)
-      return
-    }
-
-    setSuccess(true)
+  if (password.trim().length < 6) {
+    setError("Le mot de passe doit contenir au moins 6 caractères")
     setLoading(false)
+    return
   }
+
+  if (username.trim().length < 2) {
+    setError("Le pseudo doit contenir au moins 2 caractères")
+    setLoading(false)
+    return
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password: password.trim(),
+    options: { data: { username, avatar: "⚔️" } },
+  })
+
+  if (error) {
+    setError(`Erreur: ${error.message}`)
+    setLoading(false)
+    return
+  }
+
+  setSuccess(true)
+  setLoading(false)
+}
+
+
 
   if (success) {
     return (
@@ -120,7 +134,7 @@ export default function SignupPage() {
               disabled={loading}
               className="w-full bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white py-5 text-base"
             >
-              {loading ? "Création..." : "Commencer l&apos;aventure 🗺️"}
+              {loading ? "Création..." : <>Commencer l{"'"}aventure 📖</>}
             </Button>
           </form>
 

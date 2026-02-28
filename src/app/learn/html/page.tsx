@@ -17,7 +17,8 @@ const lessons = [
     id: 1,
     title: "Ma première page",
     xp: 50,
-    expectedOutput: "Bonjour CodeQuest",  // ✅ mot clé à chercher
+    expectedOutput: "Bonjour CodeQuest",
+    hint: "Utilise la balise <h1> pour le titre et <p> pour le paragraphe, à l'intérieur du <body>.",
     instructions: "Crée une page HTML avec un titre <h1> qui dit 'Bonjour CodeQuest !' et un paragraphe <p> qui dit 'J'apprends le HTML !'.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -34,7 +35,8 @@ const lessons = [
     id: 2,
     title: "Liens et Images",
     xp: 75,
-    expectedOutput: "picsum.photos",  // ✅
+    expectedOutput: "picsum.photos",
+    hint: "Une balise <a href='...'> crée un lien, et <img src='...' alt='...'> insère une image.",
     instructions: "Ajoute un lien <a> vers https://codequest.dev avec le texte 'Visiter CodeQuest' et une image <img> avec src='https://picsum.photos/200' et alt='Photo'.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -49,6 +51,7 @@ const lessons = [
     title: "Listes et Tableaux",
     xp: 100,
     expectedOutput: "<ul>",
+    hint: "Commence par <ul> puis ajoute des <li> pour chaque élément de ta liste.",
     instructions: "Crée une liste non-ordonnée <ul> avec 3 langages de programmation, puis un tableau <table> avec 2 colonnes (Langage, Difficulté) et 2 lignes.",
     defaultCode: `<!DOCTYPE html>
 <html>
@@ -65,10 +68,8 @@ export default function HTMLLearnPage() {
   const [completedLessons, setCompletedLessons] = useState<number[]>([])
   const [justCompleted, setJustCompleted] = useState(false)
   const lesson = lessons[currentLesson]
-  
 
   const { userId } = useAuth()
-  // ✅ newBadge + clearBadge ajoutés
   const { completeLesson, newBadge, clearBadge } = useProgress(userId ?? null)
   const { hearts, maxHearts, nextRefill, loseHeart } = useHearts(userId ?? null)
 
@@ -88,7 +89,6 @@ export default function HTMLLearnPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
 
-      {/* ✅ Badge notification live */}
       <BadgeNotification badge={newBadge} onClose={clearBadge} />
 
       <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50 max-w-7xl mx-auto">
@@ -150,11 +150,12 @@ export default function HTMLLearnPage() {
           instructions={lesson.instructions}
           xpReward={lesson.xp}
           onSuccess={handleSuccess}
-          expectedOutput={lesson.expectedOutput}  // ✅ AJOUTE ÇA
-          hearts={hearts}           // ✅
-          maxHearts={maxHearts}     // ✅
-          nextRefill={nextRefill}   // ✅
-          onError={loseHeart}       // ✅
+          expectedOutput={lesson.expectedOutput}
+          hint={lesson.hint}
+          hearts={hearts}
+          maxHearts={maxHearts}
+          nextRefill={nextRefill}
+          onError={loseHeart}
         />
 
         {justCompleted && (
