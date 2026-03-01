@@ -29,6 +29,9 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  icons: {
+    icon: "/favicon.svg", // ou "/favicon.ico" selon le fichier que tu utilises
+  },
 }
 
 export default function RootLayout({

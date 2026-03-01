@@ -22,6 +22,8 @@ export function useProgress(userId: string | null) {
   })
   const [loading, setLoading] = useState(true)
   const [newBadge, setNewBadge] = useState<{ emoji: string; name: string } | null>(null)
+  const [justLeveledUp, setJustLeveledUp] = useState<{ from: number; to: number } | null>(null)
+  const [justKeptStreak, setJustKeptStreak] = useState<number | null>(null)
 
   const fetchProgress = useCallback(async () => {
     if (!userId) return
@@ -112,8 +114,15 @@ export function useProgress(userId: string | null) {
           : lastSeen === today
           ? progress.streak
           : 1
+      // NEW: détecter streak conservé ou augmenté (on ignore les resets à 1)
+      const keptStreakToday =
+        (lastSeen === yesterday || lastSeen === today) && newStreak >= 2
 
-      // 3) Si déjà complétée → pas de XP en plus
+      if (keptStreakToday) {
+        setJustKeptStreak(newStreak)
+      }
+
+            // 3) Si déjà complétée → pas de XP en plus
       const gainedXp = alreadyDone ? 0 : xpReward
       const newXp = progress.xp + gainedXp
       const newLevel = Math.floor(newXp / 500) + 1
@@ -164,6 +173,12 @@ export function useProgress(userId: string | null) {
         if (badge) setNewBadge({ emoji: badge.emoji, name: badge.name })
       }
 
+      // NEW: détecter un level up
+      const leveledUp = newLevel > progress.level
+      if (leveledUp) {
+        setJustLeveledUp({ from: progress.level, to: newLevel })
+      }
+
       setProgress((prev) => ({
         ...prev,
         xp: newXp,
@@ -183,5 +198,10 @@ export function useProgress(userId: string | null) {
     refetch: fetchProgress,
     newBadge,
     clearBadge: () => setNewBadge(null),
+    justLeveledUp,
+    clearLevelUp: () => setJustLeveledUp(null),
+    justKeptStreak,
+    clearStreakPopup: () => setJustKeptStreak(null),
   }
+
 }

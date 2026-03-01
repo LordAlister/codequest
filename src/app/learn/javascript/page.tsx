@@ -117,21 +117,31 @@ export default function JSLearnPage() {
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
         <div className="flex items-center gap-4">
           <div className="flex gap-2">
-            {lessons.map((l, i) => (
-              <button
-                key={l.id}
-                onClick={() => goToLesson(i)}
-                className={`w-8 h-8 rounded-full text-sm font-bold transition-all ${
-                  completedLessons.includes(l.id)
-                    ? "bg-green-500 text-white"
-                    : i === currentLesson
-                    ? "bg-yellow-600 text-white"
-                    : "bg-slate-700 text-slate-400"
-                }`}
-              >
-                {completedLessons.includes(l.id) ? "✓" : i + 1}
-              </button>
-            ))}
+            {lessons.map((l, i) => {
+                const isCompleted = completedLessons.includes(l.id)
+                const isCurrent = i === currentLesson
+                const isLocked = i > 0 && !completedLessons.includes(lessons[i - 1].id)
+
+                return (
+                  <button
+                    key={l.id}
+                    onClick={() => !isLocked && goToLesson(i)}
+                    disabled={isLocked}
+                    className={`w-8 h-8 rounded-full text-sm font-bold transition-all ${
+                      isCompleted
+                        ? "bg-green-500 text-white"
+                        : isLocked
+                        ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                        : isCurrent
+                        ? "bg-orange-600 text-white"
+                        : "bg-slate-700 text-slate-400"
+                    }`}
+                  >
+                    {isLocked ? "🔒" : isCompleted ? "✓" : i + 1}
+                  </button>
+                )
+              })}
+
           </div>
           <Progress
             value={(completedLessons.length / lessons.length) * 100}

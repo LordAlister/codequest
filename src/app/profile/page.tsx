@@ -17,7 +17,6 @@ import Link from "next/link"
 
 const avatars = ["⚔️", "🧙", "🦊", "🐉", "🚀", "⭐", "🎮", "🦁", "🐺", "🔥"]
 
-
 // Nombre total de leçons par langage
 const TOTAL_LESSONS = {
   html: 3,
@@ -34,38 +33,47 @@ export default function ProfilePage() {
   const [selectedAvatar, setSelectedAvatar] = useState("⚔️")
   const [saved, setSaved] = useState(false)
 
-  // ✅ Valeurs réelles depuis Supabase
+  // Valeurs réelles depuis Supabase
   const xp = progress.xp
   const level = progress.level
   const streak = progress.streak
   const xpMax = level * 500
   const xpInLevel = xp - (level - 1) * 500
 
-  const htmlLessons = progress.completedLessons.filter(l => l.language === "html").length
-  const cssLessons = progress.completedLessons.filter(l => l.language === "css").length
-  const jsLessons = progress.completedLessons.filter(l => l.language === "javascript").length
-  const pythonLessons = progress.completedLessons.filter(l => l.language === "python").length
+  const htmlLessons = progress.completedLessons.filter((l) => l.language === "html").length
+  const cssLessons = progress.completedLessons.filter((l) => l.language === "css").length
+  const jsLessons = progress.completedLessons.filter((l) => l.language === "javascript").length
+  const pythonLessons = progress.completedLessons.filter((l) => l.language === "python").length
+
+  const totalLessons = htmlLessons + cssLessons + jsLessons + pythonLessons
 
   const earnedBadgeIds = getEarnedBadges({
-    xp, streak,
-    htmlLessons, cssLessons, jsLessons, pythonLessons,
+    xp,
+    streak,
+    htmlLessons,
+    cssLessons,
+    jsLessons,
+    pythonLessons,
   })
 
   const [joinedAt, setJoinedAt] = useState<string | null>(null)
 
-useEffect(() => {
-  const fetchJoinDate = async () => {
-    const { data } = await supabase.auth.getUser()
-    if (data?.user?.created_at) {
-      const date = new Date(data.user.created_at)
-      setJoinedAt(date.toLocaleDateString("fr-CA", {
-        year: "numeric", month: "long", day: "numeric"
-      }))
+  useEffect(() => {
+    const fetchJoinDate = async () => {
+      const { data } = await supabase.auth.getUser()
+      if (data?.user?.created_at) {
+        const date = new Date(data.user.created_at)
+        setJoinedAt(
+          date.toLocaleDateString("fr-CA", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+        )
+      }
     }
-  }
-  fetchJoinDate()
-}, [])
-
+    fetchJoinDate()
+  }, [])
 
   useEffect(() => {
     if (!loading) {
@@ -75,7 +83,7 @@ useEffect(() => {
   }, [loading, initialUsername, initialAvatar])
 
   const handleSave = async () => {
-    // ✅ Sauvegarde username + avatar dans profiles ET auth
+    // Sauvegarde username + avatar dans profiles ET auth
     const [{ error: authError }] = await Promise.all([
       supabase.auth.updateUser({ data: { username, avatar: selectedAvatar } }),
       supabase.from("profiles").update({ username, avatar: selectedAvatar }).eq("id", userId),
@@ -96,7 +104,6 @@ useEffect(() => {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
-
       {/* NAV */}
       <nav className="flex items-center justify-between px-4 py-4 max-w-4xl mx-auto border-b border-slate-700/50">
         <Logo size="sm" href="/" />
@@ -113,7 +120,6 @@ useEffect(() => {
       </nav>
 
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-
         {/* PROFIL HEADER */}
         <Card className="bg-slate-800/50 border-slate-700">
           <CardContent className="pt-6">
@@ -122,15 +128,20 @@ useEffect(() => {
                 {selectedAvatar}
               </div>
               <div className="text-center sm:text-left flex-1">
-                {/* ✅ Affiche "Aventurier" si username est NULL */}
-                <h1 className="text-2xl font-extrabold">{username || "Aventurier"}</h1>
+                {/* Nom + niveau */}
+                <div className="flex items-center gap-3 justify-center sm:justify-start">
+                  <h1 className="text-2xl font-extrabold text-white">{username || "Aventurier"}</h1>
+                  <span className="px-2 py-0.5 rounded-full bg-violet-600 text-xs font-bold text-white">
+                    Niv. {level}
+                  </span>
+                </div>
+
                 <p className="text-slate-400 text-sm">{email}</p>
-                {joinedAt && (<p className="text-slate-500 text-xs mt-1">📅 Membre depuis {joinedAt}</p>)}
+                {joinedAt && (
+                  <p className="text-slate-500 text-xs mt-1">📅 Membre depuis {joinedAt}</p>
+                )}
 
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
-                  <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30">
-                    <Zap className="w-3 h-3 mr-1" /> Niveau {level}
-                  </Badge>
                   <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
                     <Flame className="w-3 h-3 mr-1" /> {streak} jours 🔥
                   </Badge>
@@ -138,15 +149,21 @@ useEffect(() => {
                     <Trophy className="w-3 h-3 mr-1" /> {earnedBadgeIds.length} badges
                   </Badge>
                 </div>
+
+                <p className="text-xs text-slate-500 mt-2">
+                  {totalLessons} leçons complétées • {earnedBadgeIds.length} badges • série de {streak} jours
+                </p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-extrabold text-violet-400">{xp}</p>
                 <p className="text-xs text-slate-400">XP Total</p>
                 <div className="w-24 mt-2">
-                  {/* ✅ Barre de progression dans le niveau actuel */}
+                  {/* Barre de progression dans le niveau actuel */}
                   <Progress value={(xpInLevel / 500) * 100} className="h-2 bg-slate-700" />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">{500 - xpInLevel} XP → Niv. {level + 1}</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {500 - xpInLevel} XP → Niv. {level + 1}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -186,7 +203,12 @@ useEffect(() => {
               </div>
             </div>
             <Button onClick={handleSave} className="bg-violet-600 hover:bg-violet-500 text-white">
-              {saved ? "✅ Sauvegardé !" : <><Save className="w-4 h-4 mr-2" />Sauvegarder</>}
+              {saved ? "✅ Sauvegardé !" : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Sauvegarder
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -195,7 +217,7 @@ useEffect(() => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: "XP Total", value: xp, emoji: "⚡" },
-            { label: "Niveau", value: level, emoji: "🎮" },
+            { label: "Leçons", value: totalLessons, emoji: "📚" },
             { label: "Jours de suite", value: streak, emoji: "🔥" },
             { label: "Badges", value: `${earnedBadgeIds.length}/${ALL_BADGES.length}`, emoji: "🏆" },
           ].map((stat) => (
@@ -209,43 +231,48 @@ useEffect(() => {
           ))}
         </div>
 
-        {/* LEÇONS PAR LANGAGE ✅ NOUVEAU */}
         {/* LEÇONS PAR LANGAGE — avec barre de progression */}
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white text-lg flex items-center justify-between">
-                <span>📚 Leçons complétées</span>
-                <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30">
-                  {htmlLessons + cssLessons + jsLessons + pythonLessons} / {TOTAL_ALL} leçons
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { label: "HTML", value: htmlLessons, total: TOTAL_LESSONS.html, emoji: "🌐", color: "bg-orange-500" },
-                { label: "CSS", value: cssLessons, total: TOTAL_LESSONS.css, emoji: "🎨", color: "bg-blue-500" },
-                { label: "JavaScript", value: jsLessons, total: TOTAL_LESSONS.javascript, emoji: "⚡", color: "bg-yellow-500" },
-                { label: "Python", value: pythonLessons, total: TOTAL_LESSONS.python, emoji: "🐍", color: "bg-green-500" },
-              ].map((lang) => {
-                const percent = Math.round((lang.value / lang.total) * 100)
-                const completed = lang.value >= lang.total
-                return (
-                  <div key={lang.label} className="flex items-center gap-3">
-                    <span className="text-xl w-7">{lang.emoji}</span>
-                    <div className="flex-1">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="font-semibold">{lang.label}</span>
-                        <span className={completed ? "text-green-400 font-bold" : "text-slate-400"}>
-                          {lang.value}/{lang.total} {completed && "✅"}
-                        </span>
-                      </div>
-                      <Progress value={percent} className="h-2 bg-slate-700" />
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-white text-lg flex items-center justify-between">
+              <span>📚 Leçons complétées</span>
+              <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30">
+                {totalLessons} / {TOTAL_ALL} leçons
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[
+              { label: "HTML", value: htmlLessons, total: TOTAL_LESSONS.html, emoji: "🌐", color: "bg-orange-500" },
+              { label: "CSS", value: cssLessons, total: TOTAL_LESSONS.css, emoji: "🎨", color: "bg-blue-500" },
+              {
+                label: "JavaScript",
+                value: jsLessons,
+                total: TOTAL_LESSONS.javascript,
+                emoji: "⚡",
+                color: "bg-yellow-500",
+              },
+              { label: "Python", value: pythonLessons, total: TOTAL_LESSONS.python, emoji: "🐍", color: "bg-green-500" },
+            ].map((lang) => {
+              const percent = Math.round((lang.value / lang.total) * 100)
+              const completed = lang.value >= lang.total
+              return (
+                <div key={lang.label} className="flex items-center gap-3">
+                  <span className="text-xl w-7">{lang.emoji}</span>
+                  <div className="flex-1">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-semibold">{lang.label}</span>
+                      <span className={completed ? "text-green-400 font-bold" : "text-slate-400"}>
+                        {lang.value}/{lang.total} {completed && "✅"}
+                      </span>
                     </div>
+                    <Progress value={percent} className="h-2 bg-slate-700" />
                   </div>
-                )
-              })}
-            </CardContent>
-          </Card>
+                </div>
+              )
+            })}
+          </CardContent>
+        </Card>
 
         {/* BADGES */}
         <Card className="bg-slate-800/50 border-slate-700">
@@ -258,7 +285,6 @@ useEffect(() => {
             <BadgesGrid earnedIds={earnedBadgeIds} />
           </CardContent>
         </Card>
-
       </div>
     </main>
   )

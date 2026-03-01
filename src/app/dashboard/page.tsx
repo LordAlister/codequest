@@ -17,9 +17,8 @@ import BadgeNotification from "@/components/BadgeNotification"
 import StatsChart from "@/components/StatsChart"
 import DailyChallenge from "@/components/DailyChallenge"
 import Leaderboard from "@/components/Leaderboard"
-
-
-
+import LevelUpModal from "@/components/LevelUpModal"
+import StreakPopup from "@/components/StreakPopup"
 
 const languages = [
   { name: "HTML", emoji: "🌐", color: "from-orange-500 to-orange-600", totalLessons: 20, unlocked: true },
@@ -29,15 +28,22 @@ const languages = [
 ]
 
 export default function Dashboard() {
-  const { loading, username, avatar, logout, userId } = useAuth()
-  const { progress } = useProgress(userId ?? null)
+  const { loading: authLoading, username, avatar, logout, userId } = useAuth()
+  const {
+    progress,
+    loading: progressLoading,
+    justLeveledUp,
+    clearLevelUp,
+    justKeptStreak,
+    clearStreakPopup,
+  } = useProgress(userId ?? null)
+
   const [newBadge, setNewBadge] = useState<{ emoji: string; name: string } | null>(null)
 
-  // ✅ STATSBAR LIVE — état
+  // STATSBAR LIVE
   const [activeUsers, setActiveUsers] = useState(0)
   const [topLanguage, setTopLanguage] = useState<string | null>(null)
 
-  // ✅ STATSBAR LIVE — Supabase Presence
   useEffect(() => {
     if (!userId) return
 
@@ -51,7 +57,6 @@ export default function Dashboard() {
         const users = Object.values(state)
         setActiveUsers(users.length)
 
-        // Calcule le langage le plus étudié live
         const counts: Record<string, number> = {}
         users.forEach((u) => {
           const lang = u[0]?.language
@@ -66,7 +71,9 @@ export default function Dashboard() {
         }
       })
 
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [userId])
 
   const xp = progress.xp
@@ -74,24 +81,29 @@ export default function Dashboard() {
   const streak = progress.streak
   const xpMax = level * 500
 
-  const htmlLessons = progress.completedLessons.filter(l => l.language === "html").length
-  const cssLessons = progress.completedLessons.filter(l => l.language === "css").length
-  const jsLessons = progress.completedLessons.filter(l => l.language === "javascript").length
-  const pythonLessons = progress.completedLessons.filter(l => l.language === "python").length
+  const htmlLessons = progress.completedLessons.filter((l) => l.language === "html").length
+  const cssLessons = progress.completedLessons.filter((l) => l.language === "css").length
+  const jsLessons = progress.completedLessons.filter((l) => l.language === "javascript").length
+  const pythonLessons = progress.completedLessons.filter((l) => l.language === "python").length
 
   const earnedBadgeIds = getEarnedBadges({
-    xp, streak, htmlLessons, cssLessons, jsLessons, pythonLessons,
+    xp,
+    streak,
+    htmlLessons,
+    cssLessons,
+    jsLessons,
+    pythonLessons,
   })
 
   const languagesWithProgress = languages.map((lang) => {
     const completed = progress.completedLessons.filter(
-      l => l.language === lang.name.toLowerCase()
+      (l) => l.language === lang.name.toLowerCase(),
     ).length
     const pct = Math.round((completed / lang.totalLessons) * 100)
     return { ...lang, lessons: completed, progress: pct, level: Math.floor(completed / 5) + 1 }
   })
 
-  if (loading) {
+  if (authLoading || progressLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 flex items-center justify-center">
         <div className="text-white text-xl animate-pulse">Chargement de ton aventure... 🗺️</div>
@@ -101,17 +113,16 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
-
       <BadgeNotification badge={newBadge} onClose={() => setNewBadge(null)} />
 
       {/* NAV */}
       <nav className="flex items-center justify-between px-4 py-4 max-w-6xl mx-auto border-b border-slate-700/50">
         <Logo size="sm" href="/" />
         <div className="flex items-center gap-2">
-          <Badge className="hidden sm:flex bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+          <Badge className="hidden sm:flex bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
             <Flame className="w-3 h-3 mr-1" /> {streak} jours 🔥
           </Badge>
-          <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30">
+          <Badge className="bg-violet-500/20 text-violet-300 border-violet-500/30">
             <Zap className="w-3 h-3 mr-1" /> {xp} XP
           </Badge>
           <Link href="/profile">
@@ -119,35 +130,47 @@ export default function Dashboard() {
               Profil
             </Button>
           </Link>
-          <Button onClick={logout} variant="ghost" size="sm" className="text-slate-400 hover:text-red-400">
+          <Button
+            onClick={logout}
+            variant="ghost"
+            size="sm"
+            className="text-slate-400 hover:text-red-400"
+          >
             <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </nav>
 
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-
-        {/* ✅ STATSBAR LIVE */}
-
-                <div className="flex flex-wrap items-center gap-3 bg-slate-800/40 border border-slate-700/50 rounded-2xl px-5 py-3">
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                    <Users className="w-4 h-4 text-green-400" />
-                    <span className="text-sm text-slate-300">
-                    <span className="font-bold text-green-400">{activeUsers}</span> apprenant{activeUsers > 1 ? "s" : ""} en ligne
-                    </span>
-                </div>
-                {topLanguage && topLanguage !== "dashboard" && (
-                    <>
-                    <span className="text-slate-600">•</span>
-                    <span className="text-sm text-slate-300">
-                        🔥 Langage le plus étudié :{" "}
-                        <span className="font-bold text-violet-400 capitalize">{topLanguage}</span>
-                    </span>
-                    </>
-                )}
-                </div>
-
+        {/* STATSBAR LIVE */}
+        <div className="flex flex-wrap items-center gap-3 bg-slate-800/40 border border-slate-700/50 rounded-2xl px-5 py-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <Users className="w-4 h-4 text-emerald-400" />
+            <span className="text-sm text-slate-300">
+              <span className="font-bold text-emerald-300">{activeUsers}</span>{" "}
+              apprenant{activeUsers > 1 ? "s" : ""} en ligne
+            </span>
+          </div>
+          {topLanguage && topLanguage !== "dashboard" && (
+            <>
+              <span className="text-slate-600">•</span>
+              <span className="text-sm text-slate-300">
+                🔥 Langage le plus étudié :{" "}
+                <span className="font-bold text-violet-300 capitalize">{topLanguage}</span>
+              </span>
+            </>
+          )}
+          {streak >= 3 && (
+            <>
+              <span className="text-slate-600">•</span>
+              <span className="text-sm text-slate-300">
+                🔥 Série de{" "}
+                <span className="font-bold text-orange-300">{streak}</span> jours en cours
+              </span>
+            </>
+          )}
+        </div>
 
         {/* PROFIL HERO */}
         <Card className="bg-slate-800/50 border-slate-700">
@@ -165,28 +188,47 @@ export default function Dashboard() {
                 <p className="text-slate-400 mb-3 text-sm">Niveau {level} — Aventurier du Code</p>
                 <div className="w-full max-w-md mx-auto sm:mx-0">
                   <div className="flex justify-between text-sm text-slate-400 mb-2">
-                    <span>{xp} XP</span>
-                    <span>{xpMax} XP</span>
+                    <span className="text-violet-200 font-semibold">{xp} XP</span>
+                    <span className="text-slate-500">{xpMax} XP</span>
                   </div>
                   <Progress value={(xp / xpMax) * 100} className="h-3 bg-slate-700" />
-                  <p className="text-xs text-slate-500 mt-1">{xpMax - xp} XP avant le niveau {level + 1}</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    <span className="text-emerald-300 font-medium">
+                      {xpMax - xp} XP
+                    </span>{" "}
+                    avant le niveau {level + 1}
+                  </p>
                 </div>
               </div>
               <div className="flex sm:flex-col gap-3">
-                <div className="bg-slate-700/50 rounded-xl p-3 text-center">
+                {/* Badges */}
+                <div className="bg-slate-700/50 rounded-xl p-3 text-center min-w-[90px]">
                   <Trophy className="mx-auto mb-1 text-yellow-400" size={20} />
-                  <p className="text-lg font-bold">{earnedBadgeIds.length}</p>
-                  <p className="text-xs text-slate-400">Badges</p>
+                  <p className="text-lg font-extrabold text-yellow-300">
+                    {earnedBadgeIds.length}
+                  </p>
+                  <p className="text-[11px] text-slate-400">Badges débloqués</p>
+                  <p className="text-[10px] text-slate-500">sur {ALL_BADGES.length}</p>
                 </div>
-                <div className="bg-slate-700/50 rounded-xl p-3 text-center">
-                  <BookOpen className="mx-auto mb-1 text-violet-400" size={20} />
-                  <p className="text-lg font-bold">{progress.completedLessons.length}</p>
-                  <p className="text-xs text-slate-400">Leçons</p>
+
+                {/* Leçons */}
+                <div className="bg-slate-700/50 rounded-xl p-3 text-center min-w-[90px]">
+                  <BookOpen className="mx-auto mb-1 text-sky-400" size={20} />
+                  <p className="text-lg font-extrabold text-sky-300">
+                    {progress.completedLessons.length}
+                  </p>
+                  <p className="text-[11px] text-slate-400">Leçons complétées</p>
+                  <p className="text-[10px] text-slate-500">HTML / CSS / JS</p>
                 </div>
-                <div className="bg-slate-700/50 rounded-xl p-3 text-center">
-                  <Star className="mx-auto mb-1 text-pink-400" size={20} />
-                  <p className="text-lg font-bold">#{streak}</p>
-                  <p className="text-xs text-slate-400">Série</p>
+
+                {/* Série */}
+                <div className="bg-slate-700/50 rounded-xl p-3 text-center min-w-[90px]">
+                  <Flame className="mx-auto mb-1 text-orange-400" size={20} />
+                  <p className="text-lg font-extrabold text-orange-300">
+                    {streak}
+                  </p>
+                  <p className="text-[11px] text-slate-400">Jours de suite</p>
+                  <p className="text-[10px] text-slate-500">Ne casse pas ta série !</p>
                 </div>
               </div>
             </div>
@@ -195,24 +237,42 @@ export default function Dashboard() {
 
         {/* LANGAGES */}
         <div>
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold mb-1 flex items-center gap-2">
             <Code2 className="text-violet-400" /> Tes parcours
           </h2>
+          <p className="text-xs text-slate-400 mb-4">
+            {progress.completedLessons.length} leçons complétées •{" "}
+            <span className="text-yellow-300 font-semibold">
+              {earnedBadgeIds.length} badges
+            </span>{" "}
+            • série de{" "}
+            <span className="text-orange-300 font-semibold">{streak}</span> jours
+          </p>
           <div className="grid md:grid-cols-2 gap-4">
             {languagesWithProgress.map((lang) => (
-              <Card key={lang.name} className={`border-slate-700 transition-all ${lang.unlocked ? "bg-slate-800/50 hover:border-violet-500" : "bg-slate-800/20 opacity-60"}`}>
+              <Card
+                key={lang.name}
+                className={`border-slate-700 transition-all ${
+                  lang.unlocked ? "bg-slate-800/50 hover:border-violet-500" : "bg-slate-800/20 opacity-60"
+                }`}
+              >
                 <CardContent className="pt-5 pb-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <span className="text-3xl">{lang.emoji}</span>
                       <div>
                         <p className="font-bold text-white">{lang.name}</p>
-                        <p className="text-xs text-slate-400">{lang.unlocked ? `Niveau ${lang.level}` : "Verrouillé"}</p>
+                        <p className="text-xs text-slate-400">
+                          {lang.unlocked ? `Niveau ${lang.level}` : "Verrouillé"}
+                        </p>
                       </div>
                     </div>
                     {lang.unlocked ? (
                       <Badge className={`bg-gradient-to-r ${lang.color} text-white border-0`}>
-                        {lang.lessons}/{lang.totalLessons} leçons
+                        <span className="font-semibold">
+                          {lang.lessons}/{lang.totalLessons}
+                        </span>{" "}
+                        leçons
                       </Badge>
                     ) : (
                       <Lock className="text-slate-500" size={20} />
@@ -222,9 +282,17 @@ export default function Dashboard() {
                     <>
                       <Progress value={lang.progress} className="h-2 bg-slate-700" />
                       <div className="flex justify-between mt-2">
-                        <span className="text-xs text-slate-400">{lang.progress}% complété</span>
+                        <span className="text-xs text-slate-400">
+                          <span className="text-emerald-300 font-semibold">
+                            {lang.progress}%
+                          </span>{" "}
+                          complété
+                        </span>
                         <Link href={`/learn/${lang.name.toLowerCase()}`}>
-                          <Button size="sm" className={`bg-gradient-to-r ${lang.color} text-white border-0 h-7 text-xs`}>
+                          <Button
+                            size="sm"
+                            className={`bg-gradient-to-r ${lang.color} text-white border-0 h-7 text-xs`}
+                          >
                             Continuer →
                           </Button>
                         </Link>
@@ -237,42 +305,44 @@ export default function Dashboard() {
           </div>
         </div>
 
-            {/* STATS LANGAGES */}
-            <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                📊 Mes stats par langage
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <StatsChart
-                htmlLessons={htmlLessons}
-                cssLessons={cssLessons}
-                jsLessons={jsLessons}
-                pythonLessons={pythonLessons}
-                />
-            </CardContent>
-            </Card>
-
-
+        {/* STATS LANGAGES */}
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-white text-lg flex items-center gap-2">
+              📊 Mes stats par langage
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StatsChart
+              htmlLessons={htmlLessons}
+              cssLessons={cssLessons}
+              jsLessons={jsLessons}
+              pythonLessons={pythonLessons}
+            />
+          </CardContent>
+        </Card>
 
         {/* BADGES */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Trophy className="text-yellow-400" /> Tes badges ({earnedBadgeIds.length}/{ALL_BADGES.length})
+            <Trophy className="text-yellow-400" /> Tes badges (
+            <span className="text-yellow-300 font-semibold">
+              {earnedBadgeIds.length}
+            </span>
+            /{ALL_BADGES.length})
           </h2>
           <BadgesGrid earnedIds={earnedBadgeIds} />
         </div>
+
         {/* LEADERBOARD */}
         <Leaderboard currentUserId={userId ?? null} />
 
-
         {/* DÉFI DU JOUR */}
-
         <DailyChallenge />
-
-
       </div>
+
+      <LevelUpModal levelUp={justLeveledUp} onClose={clearLevelUp} />
+      <StreakPopup streak={justKeptStreak} onClose={clearStreakPopup} />
     </main>
   )
 }

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+  </defs>
+  <!-- Fond rond -->
+  <circle cx="32" cy="32" r="30" fill="url(#bg)"/>
+  <!-- Chevrons de code -->
+  <path d="M24 22 L16 32 L24 42" fill="none" stroke="#f9fafb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M40 22 L48 32 L40 42" fill="none" stroke="#f9fafb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Éclair au centre (Quest / XP) -->
+  <path d="M30 20 L36 28 L32 28 L34 36 L28 28 L32 28 Z"
+        fill="#facc15" stroke="#fbbf24" stroke-width="1"/>
+</svg>
