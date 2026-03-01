@@ -17,6 +17,16 @@ import Link from "next/link"
 
 const avatars = ["⚔️", "🧙", "🦊", "🐉", "🚀", "⭐", "🎮", "🦁", "🐺", "🔥"]
 
+
+// Nombre total de leçons par langage
+const TOTAL_LESSONS = {
+  html: 3,
+  css: 3,
+  javascript: 3,
+  python: 3,
+}
+const TOTAL_ALL = Object.values(TOTAL_LESSONS).reduce((a, b) => a + b, 0)
+
 export default function ProfilePage() {
   const { loading, userId, username: initialUsername, email, avatar: initialAvatar, logout } = useAuth()
   const { progress } = useProgress(userId)
@@ -40,6 +50,22 @@ export default function ProfilePage() {
     xp, streak,
     htmlLessons, cssLessons, jsLessons, pythonLessons,
   })
+
+  const [joinedAt, setJoinedAt] = useState<string | null>(null)
+
+useEffect(() => {
+  const fetchJoinDate = async () => {
+    const { data } = await supabase.auth.getUser()
+    if (data?.user?.created_at) {
+      const date = new Date(data.user.created_at)
+      setJoinedAt(date.toLocaleDateString("fr-CA", {
+        year: "numeric", month: "long", day: "numeric"
+      }))
+    }
+  }
+  fetchJoinDate()
+}, [])
+
 
   useEffect(() => {
     if (!loading) {
@@ -99,6 +125,8 @@ export default function ProfilePage() {
                 {/* ✅ Affiche "Aventurier" si username est NULL */}
                 <h1 className="text-2xl font-extrabold">{username || "Aventurier"}</h1>
                 <p className="text-slate-400 text-sm">{email}</p>
+                {joinedAt && (<p className="text-slate-500 text-xs mt-1">📅 Membre depuis {joinedAt}</p>)}
+
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
                   <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30">
                     <Zap className="w-3 h-3 mr-1" /> Niveau {level}
@@ -182,22 +210,42 @@ export default function ProfilePage() {
         </div>
 
         {/* LEÇONS PAR LANGAGE ✅ NOUVEAU */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: "HTML", value: htmlLessons, emoji: "🌐" },
-            { label: "CSS", value: cssLessons, emoji: "🎨" },
-            { label: "JavaScript", value: jsLessons, emoji: "⚡" },
-            { label: "Python", value: pythonLessons, emoji: "🐍" },
-          ].map((stat) => (
-            <Card key={stat.label} className="bg-slate-800/50 border-slate-700 text-center">
-              <CardContent className="pt-5 pb-4">
-                <p className="text-2xl mb-1">{stat.emoji}</p>
-                <p className="text-2xl font-extrabold text-white">{stat.value}</p>
-                <p className="text-xs text-slate-400 mt-1">{stat.label} leçons</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* LEÇONS PAR LANGAGE — avec barre de progression */}
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-white text-lg flex items-center justify-between">
+                <span>📚 Leçons complétées</span>
+                <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30">
+                  {htmlLessons + cssLessons + jsLessons + pythonLessons} / {TOTAL_ALL} leçons
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                { label: "HTML", value: htmlLessons, total: TOTAL_LESSONS.html, emoji: "🌐", color: "bg-orange-500" },
+                { label: "CSS", value: cssLessons, total: TOTAL_LESSONS.css, emoji: "🎨", color: "bg-blue-500" },
+                { label: "JavaScript", value: jsLessons, total: TOTAL_LESSONS.javascript, emoji: "⚡", color: "bg-yellow-500" },
+                { label: "Python", value: pythonLessons, total: TOTAL_LESSONS.python, emoji: "🐍", color: "bg-green-500" },
+              ].map((lang) => {
+                const percent = Math.round((lang.value / lang.total) * 100)
+                const completed = lang.value >= lang.total
+                return (
+                  <div key={lang.label} className="flex items-center gap-3">
+                    <span className="text-xl w-7">{lang.emoji}</span>
+                    <div className="flex-1">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="font-semibold">{lang.label}</span>
+                        <span className={completed ? "text-green-400 font-bold" : "text-slate-400"}>
+                          {lang.value}/{lang.total} {completed && "✅"}
+                        </span>
+                      </div>
+                      <Progress value={percent} className="h-2 bg-slate-700" />
+                    </div>
+                  </div>
+                )
+              })}
+            </CardContent>
+          </Card>
 
         {/* BADGES */}
         <Card className="bg-slate-800/50 border-slate-700">
