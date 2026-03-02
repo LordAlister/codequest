@@ -56,8 +56,10 @@ export default function Home() {
         transition={{ duration: 0.5 }}
         className="flex items-center justify-between px-4 py-4 max-w-6xl mx-auto"
       >
+        
         <Logo size="md" href="/" />
         <div className="flex items-center gap-2">
+          
           <Link href="/login">
             <Button variant="ghost" size="sm" className="text-white hover:text-violet-300 text-sm px-3">
               Connexion

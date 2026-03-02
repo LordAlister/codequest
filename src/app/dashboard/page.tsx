@@ -19,6 +19,7 @@ import DailyChallenge from "@/components/DailyChallenge"
 import Leaderboard from "@/components/Leaderboard"
 import LevelUpModal from "@/components/LevelUpModal"
 import StreakPopup from "@/components/StreakPopup"
+import FaqSection from "@/components/FaqSection"
 
 const languages = [
   { name: "HTML", emoji: "🌐", color: "from-orange-500 to-orange-600", totalLessons: 20, unlocked: true },
@@ -115,7 +116,7 @@ export default function Dashboard() {
     <main className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 text-white">
       <BadgeNotification badge={newBadge} onClose={() => setNewBadge(null)} />
 
-      {/* NAV */}
+      {/* ── NAV ── */}
       <nav className="flex items-center justify-between px-4 py-4 max-w-6xl mx-auto border-b border-slate-700/50">
         <Logo size="sm" href="/" />
         <div className="flex items-center gap-2">
@@ -125,6 +126,27 @@ export default function Dashboard() {
           <Badge className="bg-violet-500/20 text-violet-300 border-violet-500/30">
             <Zap className="w-3 h-3 mr-1" /> {xp} XP
           </Badge>
+
+          {/* ✅ Liens FAQ + Contact */}
+          <Link href="/faq">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-slate-400 hover:text-white text-xs hidden sm:flex"
+            >
+              FAQ
+            </Button>
+          </Link>
+          <Link href="/contact">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-slate-400 hover:text-white text-xs hidden sm:flex"
+            >
+              Contact
+            </Button>
+          </Link>
+
           <Link href="/profile">
             <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white text-xs">
               Profil
@@ -142,7 +164,8 @@ export default function Dashboard() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-        {/* STATSBAR LIVE */}
+
+        {/* ── STATSBAR LIVE ── */}
         <div className="flex flex-wrap items-center gap-3 bg-slate-800/40 border border-slate-700/50 rounded-2xl px-5 py-3">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -172,7 +195,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* PROFIL HERO */}
+        {/* ── PROFIL HERO ── */}
         <Card className="bg-slate-800/50 border-slate-700">
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -193,25 +216,18 @@ export default function Dashboard() {
                   </div>
                   <Progress value={(xp / xpMax) * 100} className="h-3 bg-slate-700" />
                   <p className="text-xs text-slate-500 mt-1">
-                    <span className="text-emerald-300 font-medium">
-                      {xpMax - xp} XP
-                    </span>{" "}
+                    <span className="text-emerald-300 font-medium">{xpMax - xp} XP</span>{" "}
                     avant le niveau {level + 1}
                   </p>
                 </div>
               </div>
               <div className="flex sm:flex-col gap-3">
-                {/* Badges */}
                 <div className="bg-slate-700/50 rounded-xl p-3 text-center min-w-[90px]">
                   <Trophy className="mx-auto mb-1 text-yellow-400" size={20} />
-                  <p className="text-lg font-extrabold text-yellow-300">
-                    {earnedBadgeIds.length}
-                  </p>
+                  <p className="text-lg font-extrabold text-yellow-300">{earnedBadgeIds.length}</p>
                   <p className="text-[11px] text-slate-400">Badges débloqués</p>
                   <p className="text-[10px] text-slate-500">sur {ALL_BADGES.length}</p>
                 </div>
-
-                {/* Leçons */}
                 <div className="bg-slate-700/50 rounded-xl p-3 text-center min-w-[90px]">
                   <BookOpen className="mx-auto mb-1 text-sky-400" size={20} />
                   <p className="text-lg font-extrabold text-sky-300">
@@ -220,13 +236,9 @@ export default function Dashboard() {
                   <p className="text-[11px] text-slate-400">Leçons complétées</p>
                   <p className="text-[10px] text-slate-500">HTML / CSS / JS</p>
                 </div>
-
-                {/* Série */}
                 <div className="bg-slate-700/50 rounded-xl p-3 text-center min-w-[90px]">
                   <Flame className="mx-auto mb-1 text-orange-400" size={20} />
-                  <p className="text-lg font-extrabold text-orange-300">
-                    {streak}
-                  </p>
+                  <p className="text-lg font-extrabold text-orange-300">{streak}</p>
                   <p className="text-[11px] text-slate-400">Jours de suite</p>
                   <p className="text-[10px] text-slate-500">Ne casse pas ta série !</p>
                 </div>
@@ -235,25 +247,24 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* LANGAGES */}
+        {/* ── LANGAGES ── */}
         <div>
           <h2 className="text-xl font-bold mb-1 flex items-center gap-2">
             <Code2 className="text-violet-400" /> Tes parcours
           </h2>
           <p className="text-xs text-slate-400 mb-4">
             {progress.completedLessons.length} leçons complétées •{" "}
-            <span className="text-yellow-300 font-semibold">
-              {earnedBadgeIds.length} badges
-            </span>{" "}
-            • série de{" "}
-            <span className="text-orange-300 font-semibold">{streak}</span> jours
+            <span className="text-yellow-300 font-semibold">{earnedBadgeIds.length} badges</span> •
+            série de <span className="text-orange-300 font-semibold">{streak}</span> jours
           </p>
           <div className="grid md:grid-cols-2 gap-4">
             {languagesWithProgress.map((lang) => (
               <Card
                 key={lang.name}
                 className={`border-slate-700 transition-all ${
-                  lang.unlocked ? "bg-slate-800/50 hover:border-violet-500" : "bg-slate-800/20 opacity-60"
+                  lang.unlocked
+                    ? "bg-slate-800/50 hover:border-violet-500"
+                    : "bg-slate-800/20 opacity-60"
                 }`}
               >
                 <CardContent className="pt-5 pb-4">
@@ -283,9 +294,7 @@ export default function Dashboard() {
                       <Progress value={lang.progress} className="h-2 bg-slate-700" />
                       <div className="flex justify-between mt-2">
                         <span className="text-xs text-slate-400">
-                          <span className="text-emerald-300 font-semibold">
-                            {lang.progress}%
-                          </span>{" "}
+                          <span className="text-emerald-300 font-semibold">{lang.progress}%</span>{" "}
                           complété
                         </span>
                         <Link href={`/learn/${lang.name.toLowerCase()}`}>
@@ -305,7 +314,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* STATS LANGAGES */}
+        {/* ── STATS LANGAGES ── */}
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader>
             <CardTitle className="text-white text-lg flex items-center gap-2">
@@ -322,23 +331,38 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* BADGES */}
+        {/* ── BADGES ── */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Trophy className="text-yellow-400" /> Tes badges (
-            <span className="text-yellow-300 font-semibold">
-              {earnedBadgeIds.length}
-            </span>
-            /{ALL_BADGES.length})
+            <span className="text-yellow-300 font-semibold">{earnedBadgeIds.length}</span>/
+            {ALL_BADGES.length})
           </h2>
           <BadgesGrid earnedIds={earnedBadgeIds} />
         </div>
 
-        {/* LEADERBOARD */}
+        {/* ── LEADERBOARD ── */}
         <Leaderboard currentUserId={userId ?? null} />
 
-        {/* DÉFI DU JOUR */}
+        {/* ── DÉFI DU JOUR ── */}
         <DailyChallenge />
+
+        {/* ── FAQ ── */}
+        <FaqSection />
+
+        {/* ── FOOTER ── */}
+        <div className="border-t border-slate-700/50 pt-6 pb-4 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs text-slate-500">
+          <span>© 2026 CodeQuest</span>
+          <span className="hidden sm:block text-slate-700">•</span>
+          <Link href="/faq" className="hover:text-violet-400 transition">
+            FAQ
+          </Link>
+          <span className="hidden sm:block text-slate-700">•</span>
+          <Link href="/contact" className="hover:text-violet-400 transition">
+            Contact
+          </Link>
+        </div>
+
       </div>
 
       <LevelUpModal levelUp={justLeveledUp} onClose={clearLevelUp} />

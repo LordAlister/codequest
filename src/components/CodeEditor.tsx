@@ -39,6 +39,15 @@ export default function CodeEditor({
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
   const [xpEarned, setXpEarned] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const mapToMonacoLanguage = (lang: CodeEditorProps["language"]) => {
+  if (lang === "javascript") return "javascript"
+  if (lang === "html") return "html"
+  if (lang === "css") return "css"
+  // en attendant un vrai support Python:
+  if (lang === "python") return "python"
+  return "javascript"
+}
+
 
   const wrapCSS = (cssCode: string) => `<!DOCTYPE html>
 <html>
@@ -217,23 +226,27 @@ export default function CodeEditor({
           </div>
 
           <div className="rounded-xl overflow-hidden border border-slate-700">
-            <Editor
-              height="280px"
-              language={language}
-              value={code}
-              onChange={(val) => setCode(val || "")}
-              theme="vs-dark"
-              options={{
-                fontSize: 13,
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                lineNumbers: "on",
-                roundedSelection: true,
-                automaticLayout: true,
-                tabSize: 2,
-                wordWrap: "on",
-              }}
-            />
+              <Editor
+                height="320px"
+                language={mapToMonacoLanguage(language)}
+                value={code}
+                onChange={(val) => setCode(val || "")}
+                theme="vs-dark"
+                options={{
+                  fontSize: 14,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  lineNumbers: "on",
+                  roundedSelection: true,
+                  automaticLayout: true,
+                  tabSize: 2,
+                  wordWrap: "on",
+                  cursorBlinking: "smooth",
+                  smoothScrolling: true,
+                  
+                }}
+              />
+
           </div>
         </div>
 
